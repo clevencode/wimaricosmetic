@@ -1,0 +1,249 @@
+document.addEventListener('alpine:init', () => {
+  Alpine.data('catalogApp', () => ({
+    brandName: window.VITRINE_CONFIG?.brandName || 'Maison Nuée',
+    whatsappNumber: window.VITRINE_CONFIG?.whatsappNumber || '5511999999999',
+
+    loading: true,
+    error: null,
+    products: [],
+    categories: [],
+
+    searchQuery: '',
+    activeCategory: 'all',
+
+    selectedProduct: null,
+    galleryIndex: 0,
+    sheetOpen: false,
+    lastFocusEl: null,
+
+    shareFeedback: '',
+    shareFeedbackTimer: null,
+
+    async init() {
+      try {
+        const res = await fetch('data/products.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Não foi possível carregar o catálogo.');
+        const data = await res.json();
+        this.categories = data.categories || [];
+        this.products = data.products || [];
+        this.openFromHash();
+      } catch (err) {
+        this.error = err?.message || 'Erro ao carregar produtos.';
+      } finally {
+        this.loading = false;
+      }
+
+      window.addEventListener('hashchange', () => this.openFromHash());
+      window.addEventListener('keydown', (e) => this.onGlobalKeydown(e));
+    },
+
+    get filteredProducts() {
+      const q = this.searchQuery.trim().toLowerCase();
+      return this.products.filter((p) => {
+        const catOk =
+          this.activeCategory === 'all' || p.category?.slug === this.activeCategory;
+        if (!catOk) return false;
+        if (!q) return true;
+        const name = (p.name || '').toLowerCase();
+        const ref = (p.ref || '').toLowerCase();
+        return name.includes(q) || ref.includes(q);
+      });
+    },
+
+    get hasActiveFilters() {
+      return this.searchQuery.trim() !== '' || this.activeCategory !== 'all';
+    },
+
+    get resultsLabel() {
+      const n = this.filteredProducts.length;
+      const noun = n === 1 ? 'produto' : 'produtos';
+      if (!this.hasActiveFilters) return `${n} ${noun}`;
+      return `${n} ${noun} encontrados`;
+    },
+
+    formatPrice(price) {
+      if (price === null || price === undefined) return 'Sob consulta';
+      return price.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      });
+    },
+
+    setCategory(slug) {
+      this.activeCategory = slug;
+    },
+
+    clearFilters() {
+      this.searchQuery = '';
+      this.activeCategory = 'all';
+    },
+
+    onImageError(event) {
+      const img = event?.target;
+      if (!img || img.dataset.fallbackApplied === '1') return;
+      img.dataset.fallbackApplied = '1';
+      img.removeAttribute('src');
+      img.alt = img.alt || 'Imagem indisponível';
+      img.classList.add('img-fallback');
+    },
+
+    focusableInSheet() {
+      const root = this.$refs.sheetPanel;
+      if (!root) return [];
+      return Array.from(
+        root.querySelectorAll(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
+    },
+
+    focusSheet() {
+      this.$nextTick(() => {
+        const root = this.$refs.sheetPanel;
+        const closeBtn = root?.querySelector('[data-sheet-close]');
+        if (closeBtn) {
+          closeBtn.focus();
+          return;
+        }
+        const first = this.focusableInSheet()[0];
+        first?.focus();
+      });
+    },
+
+    onGlobalKeydown(e) {
+      if (!this.sheetOpen) return;
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.closeProduct();
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      const focusables = this.focusableInSheet();
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    },
+
+    openProduct(product) {
+      this.lastFocusEl = document.activeElement;
+      this.selectedProduct = product;
+      this.galleryIndex = 0;
+      this.sheetOpen = true;
+      document.body.style.overflow = 'hidden';
+      history.replaceState(null, '', `#produto/${product.id}`);
+      this.focusSheet();
+    },
+
+    closeProduct() {
+      this.sheetOpen = false;
+      this.selectedProduct = null;
+      this.galleryIndex = 0;
+      document.body.style.overflow = '';
+      if (location.hash.startsWith('#produto/')) {
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+      this.$nextTick(() => {
+        if (this.lastFocusEl && typeof this.lastFocusEl.focus === 'function') {
+          this.lastFocusEl.focus();
+        }
+        this.lastFocusEl = null;
+      });
+    },
+
+    openFromHash() {
+      const match = location.hash.match(/^#produto\/(.+)$/);
+      if (!match) {
+        if (this.sheetOpen) this.closeProduct();
+        return;
+      }
+      const id = decodeURIComponent(match[1]);
+      const product = this.products.find((p) => p.id === id);
+      if (product) {
+        if (!this.sheetOpen || this.selectedProduct?.id !== product.id) {
+          this.openProduct(product);
+        }
+      }
+    },
+
+    nextImage() {
+      const imgs = this.selectedProduct?.images || [];
+      if (imgs.length < 2) return;
+      this.galleryIndex = (this.galleryIndex + 1) % imgs.length;
+    },
+
+    prevImage() {
+      const imgs = this.selectedProduct?.images || [];
+      if (imgs.length < 2) return;
+      this.galleryIndex = (this.galleryIndex - 1 + imgs.length) % imgs.length;
+    },
+
+    whatsappMessage(product) {
+      if (!product) {
+        return `Olá! Gostaria de falar com a ${this.brandName}.`;
+      }
+      return `Olá! Tenho interesse no produto ${product.name} (Ref: ${product.ref}).`;
+    },
+
+    whatsappUrl(product) {
+      const text = encodeURIComponent(this.whatsappMessage(product));
+      return `https://wa.me/${this.whatsappNumber}?text=${text}`;
+    },
+
+    productShareUrl(product) {
+      const base =
+        window.VITRINE_CONFIG?.shareBaseUrl ||
+        window.location.origin + window.location.pathname;
+      return `${base}#produto/${product.id}`;
+    },
+
+    showShareFeedback(msg) {
+      this.shareFeedback = msg;
+      clearTimeout(this.shareFeedbackTimer);
+      this.shareFeedbackTimer = setTimeout(() => {
+        this.shareFeedback = '';
+      }, 2200);
+    },
+
+    async shareProduct(product) {
+      if (!product) return;
+      const url = this.productShareUrl(product);
+      const payload = {
+        title: `${product.name} — ${this.brandName}`,
+        text: `Confira ${product.name} (Ref: ${product.ref}) na ${this.brandName}.`,
+        url,
+      };
+
+      try {
+        if (navigator.share) {
+          await navigator.share(payload);
+          return;
+        }
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(url);
+        this.showShareFeedback('Link copiado');
+      } catch {
+        this.showShareFeedback('Não foi possível compartilhar');
+      }
+    },
+  }));
+});

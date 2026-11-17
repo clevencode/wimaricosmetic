@@ -1,0 +1,163 @@
+{
+  "categories": [
+    { "slug": "skincare", "label": "Skincare" },
+    { "slug": "maquiagem", "label": "Maquiagem" },
+    { "slug": "corpo", "label": "Corpo" },
+    { "slug": "cabelos", "label": "Cabelos" },
+    { "slug": "kits", "label": "Kits" }
+  ],
+  "products": [
+    {
+      "id": "serum-nuvem-clara",
+      "ref": "MN-SK-014",
+      "name": "Sérum Nuvem Clara",
+      "category": { "slug": "skincare", "label": "Skincare" },
+      "price": 189.0,
+      "badge": "Novo",
+      "shortDescription": "Sérum leve com niacinamida e ácido hialurônico para uniformizar o tom e hidratar sem oleosidade.",
+      "specs": [
+        { "label": "Volume", "value": "30 ml" },
+        { "label": "Textura", "value": "Gel-creme ultraleve" },
+        { "label": "Uso", "value": "Manhã e noite, após limpeza" },
+        { "label": "Prazo", "value": "Envio em até 3 dias úteis" }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1620916569866-a8e040cf32d1?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "creme-noite-petal",
+      "ref": "MN-SK-022",
+      "name": "Creme Noturno Pétala",
+      "category": { "slug": "skincare", "label": "Skincare" },
+      "price": 248.0,
+      "badge": null,
+      "shortDescription": "Creme reparador com ceramidas e extrato de rosa para restaurar a barreira da pele durante o sono.",
+      "specs": [
+        { "label": "Volume", "value": "50 ml" },
+        { "label": "Textura", "value": "Creme rico aveludado" },
+        { "label": "Uso", "value": "Noite, como último passo" },
+        { "label": "Prazo", "value": "Envio em até 3 dias úteis" }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1629198688000-71f23e745b69?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "batom-matte-bruma",
+      "ref": "MN-MQ-008",
+      "name": "Batom Matte Bruma Nude",
+      "category": { "slug": "maquiagem", "label": "Maquiagem" },
+      "price": 79.9,
+      "badge": "Novo",
+      "shortDescription": "Acabamento matte confortável em tom nude-rosado. Alta cobertura com fórmula que não resseca.",
+      "specs": [
+        { "label": "Volume", "value": "3,5 g" },
+        { "label": "Acabamento", "value": "Matte suave" },
+        { "label": "Tom", "value": "Nude rosado" },
+        { "label": "Prazo", "value": "Envio em até 2 dias úteis" }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1631214524020-7e18db9a8f92?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "oleo-corpo-orvalho",
+      "ref": "MN-CP-031",
+      "name": "Óleo Corporal Orvalho",
+      "category": { "slug": "corpo", "label": "Corpo" },
+      "price": 156.0,
+      "badge": null,
+      "shortDescription": "Óleo seco com jojoba e bergamota. Absorve rápido, deixa brilho sutil e perfume limpo de spa.",
+      "specs": [
+        { "label": "Volume", "value": "100 ml" },
+        { "label": "Textura", "value": "Óleo seco" },
+        { "label": "Uso", "value": "Após o banho, pele úmida" },
+        { "label": "Prazo", "value": "Envio em até 3 dias úteis" }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1608248543809-bf9719f9542c?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "mascara-capilar-seda",
+      "ref": "MN-CB-019",
+      "name": "Máscara Capilar Seda",
+      "category": { "slug": "cabelos", "label": "Cabelos" },
+      "price": 134.0,
+      "badge": "Sob encomenda",
+      "shortDescription": "Tratamento intensivo com queratina vegetal e óleo de argan. Ideal para fios ressecados ou com química.",
+      "specs": [
+        { "label": "Volume", "value": "200 ml" },
+        { "label": "Textura", "value": "Creme denso" },
+        { "label": "Uso", "value": "1–2x por semana, 10 min" },
+        { "label": "Prazo", "value": "Produção sob encomenda: 7–10 dias" }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519735777090-ec97162dc266?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "kit-rotina-aurora",
+      "ref": "MN-KT-001",
+      "name": "Kit Rotina Aurora",
+      "category": { "slug": "kits", "label": "Kits" },
+      "price": null,
+      "badge": "Sob encomenda",
+      "shortDescription": "Trio personalizável: limpador suave, sérum e creme. Ideal para quem está montando a primeira rotina Maison Nuée.",
+      "specs": [
+        { "label": "Conteúdo", "value": "3 produtos à escolha" },
+        { "label": "Embalagem", "value": "Caixa editorial reutilizável" },
+        { "label": "Uso", "value": "Rotina completa manhã/noite" },
+        { "label": "Prazo", "value": "Montagem sob consulta: 5–8 dias" }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "blush-creme-aurora",
+      "ref": "MN-MQ-015",
+      "name": "Blush Creme Aurora",
+      "category": { "slug": "maquiagem", "label": "Maquiagem" },
+      "price": 98.0,
+      "badge": null,
+      "shortDescription": "Blush em creme com pigmento buildable e acabamento natural. Dissolve-se na pele com os dedos ou pincel.",
+      "specs": [
+        { "label": "Volume", "value": "6 g" },
+        { "label": "Acabamento", "value": "Natural luminoso" },
+        { "label": "Tom", "value": "Pêssego suave" },
+        { "label": "Prazo", "value": "Envio em até 2 dias úteis" }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    {
+      "id": "esfoliante-corpo-mineral",
+      "ref": "MN-CP-044",
+      "name": "Esfoliante Corporal Mineral",
+      "category": { "slug": "corpo", "label": "Corpo" },
+      "price": 112.0,
+      "badge": "Novo",
+      "shortDescription": "Esfoliante com cristais de açúcar e óleos minerais suaves. Remove células mortas sem agressão.",
+      "specs": [
+        { "label": "Volume", "value": "250 g" },
+        { "label": "Textura", "value": "Gel-granulado" },
+        { "label": "Uso", "value": "2–3x por semana no banho" },
+        { "label": "Prazo", "value": "Envio em até 3 dias úteis" }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1570172619604-71b7827eeb7b?auto=format&fit=crop&w=800&q=80"
+      ]
+    }
+  ]
+}

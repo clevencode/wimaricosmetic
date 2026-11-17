@@ -1,0 +1,152 @@
+:root {
+  --brand-ink: #1c1917;
+  --brand-muted: #78716c;
+  --brand-accent: #0f766e;
+  --brand-accent-hover: #0d9488;
+  --surface: #fafaf9;
+  --sheet-radius: 1.25rem;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body.app-shell {
+  font-family: 'Figtree', system-ui, sans-serif;
+  color: var(--brand-ink);
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--surface);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 0% -10%, rgba(15, 118, 110, 0.08), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(120, 113, 108, 0.1), transparent 50%),
+    linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%);
+  background-attachment: fixed;
+  min-height: 100dvh;
+}
+
+.brand-mark {
+  position: relative;
+}
+
+.brand-mark::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--brand-accent), transparent);
+  opacity: 0.55;
+  transform-origin: left;
+  transform: scaleX(0.55);
+  transition: transform 0.35s ease;
+}
+
+.brand-mark:hover::after {
+  transform: scaleX(1);
+}
+
+.catalog-intro {
+  animation: intro-in 0.45s ease-out both;
+}
+
+/* Hide scrollbar on category pills while keeping scroll */
+.pills-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pills-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Bottom sheet enter/leave */
+[x-cloak] {
+  display: none !important;
+}
+
+.sheet-panel {
+  max-height: min(92vh, 900px);
+}
+
+@media (min-width: 768px) {
+  .sheet-panel {
+    max-height: min(88vh, 820px);
+  }
+}
+
+.cta-whatsapp {
+  background-color: var(--brand-accent);
+}
+
+.cta-whatsapp:hover {
+  background-color: var(--brand-accent-hover);
+}
+
+.share-toast {
+  animation: toast-in 0.25s ease-out;
+}
+
+.product-card {
+  animation: card-in 0.4s ease-out both;
+  animation-delay: calc(min(var(--card-i, 0), 8) * 35ms);
+}
+
+.img-fallback {
+  background:
+    linear-gradient(135deg, #e7e5e4 0%, #d6d3d1 100%);
+  object-fit: none;
+  min-height: 100%;
+}
+
+@keyframes intro-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .catalog-intro,
+  .product-card,
+  .share-toast,
+  .brand-mark::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .product-card {
+    opacity: 1;
+    transform: none;
+  }
+}

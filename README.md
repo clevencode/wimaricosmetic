@@ -1,6 +1,6 @@
-# Maison Nuée — Vitrine Digital
+# Wimari — Vitrine Digital
 
-Catálogo mobile-first de cosméticos **sem carrinho e sem pagamento**. Visitantes filtram produtos e iniciam conversa no WhatsApp com nome e referência já preenchidos.
+Catálogo mobile-first de **cosméticos & perfumaria** sem carrinho e sem pagamento. Visitantes filtram produtos e iniciam conversa no WhatsApp com nome e referência já preenchidos.
 
 ## Como abrir
 
@@ -17,7 +17,7 @@ Depois abra o endereço indicado no terminal (geralmente `http://localhost:3000`
 | O quê | Onde |
 | --- | --- |
 | Número do WhatsApp | `js/config.js` → `whatsappNumber` (somente dígitos, com DDI) |
-| Nome da marca | `js/config.js` → `brandName` |
+| Nome da marca | `js/config.js` → `brandName` / `brandTagline` |
 | Produtos / categorias | `data/products.json` |
 
 ## Funcionalidades
@@ -32,3 +32,7 @@ Depois abra o endereço indicado no terminal (geralmente `http://localhost:3000`
 ## Stack
 
 HTML5 + Tailwind CSS (CDN) + Alpine.js + JSON estático.
+
+## Marca
+
+Paleta do logo: rosa `#ff2d92`, lima `#c8e84a`, preto `#111111`, laranja de apoio `#ff6a2a`.

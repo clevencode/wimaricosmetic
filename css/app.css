@@ -1,9 +1,16 @@
 :root {
-  --brand-ink: #1c1917;
-  --brand-muted: #78716c;
-  --brand-accent: #0f766e;
-  --brand-accent-hover: #0d9488;
-  --surface: #fafaf9;
+  /* Paleta do logo Wimari */
+  --brand-pink: #ff2d92;
+  --brand-pink-hover: #e01878;
+  --brand-lime: #c8e84a;
+  --brand-lime-soft: #eef8c4;
+  --brand-orange: #ff6a2a;
+  --brand-ink: #111111;
+  --brand-muted: #5c5c5c;
+  --brand-accent: var(--brand-pink);
+  --brand-accent-hover: var(--brand-pink-hover);
+  --surface: #ffffff;
+  --surface-tint: #f7fbe6;
   --sheet-radius: 1.25rem;
 }
 
@@ -12,42 +19,128 @@ html {
 }
 
 body.app-shell {
-  font-family: 'Figtree', system-ui, sans-serif;
+  font-family: 'Outfit', system-ui, sans-serif;
   color: var(--brand-ink);
   -webkit-font-smoothing: antialiased;
   background-color: var(--surface);
   background-image:
-    radial-gradient(ellipse 80% 50% at 0% -10%, rgba(15, 118, 110, 0.08), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(120, 113, 108, 0.1), transparent 50%),
-    linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%);
+    radial-gradient(ellipse 70% 45% at 0% -5%, rgba(200, 232, 74, 0.35), transparent 55%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(255, 45, 146, 0.12), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 90% 100%, rgba(255, 106, 42, 0.1), transparent 45%),
+    linear-gradient(180deg, #ffffff 0%, var(--surface-tint) 100%);
   background-attachment: fixed;
   min-height: 100dvh;
 }
 
+.font-display {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
 .brand-mark {
-  position: relative;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.25s ease;
 }
 
-.brand-mark::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--brand-accent), transparent);
-  opacity: 0.55;
-  transform-origin: left;
-  transform: scaleX(0.55);
-  transition: transform 0.35s ease;
+.brand-mark:hover {
+  transform: translateY(-1px);
 }
 
-.brand-mark:hover::after {
-  transform: scaleX(1);
+.brand-lockup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  line-height: 1;
+}
+
+.brand-lockup__word {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.22rem 0.72rem 0.28rem;
+  border-radius: 0.85rem;
+  background: var(--brand-lime);
+  color: var(--brand-pink);
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
+  font-variation-settings: 'SOFT' 100, 'opsz' 144;
+  font-size: clamp(1.35rem, 4.2vw, 1.7rem);
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+  line-height: 1;
+}
+
+.brand-lockup__row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding-left: 0.12rem;
+}
+
+.brand-lockup__tagline {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--brand-ink);
+  white-space: nowrap;
+}
+
+.brand-lockup__accent {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex-shrink: 0;
+  background:
+    linear-gradient(135deg, transparent 42%, var(--brand-orange) 42% 58%, transparent 58%),
+    radial-gradient(circle at 78% 22%, var(--brand-orange) 0 28%, transparent 29%);
+}
+
+@media (min-width: 640px) {
+  .brand-lockup__tagline {
+    font-size: 0.68rem;
+  }
+
+  .brand-lockup__accent {
+    width: 0.65rem;
+    height: 0.65rem;
+  }
 }
 
 .catalog-intro {
   animation: intro-in 0.45s ease-out both;
+}
+
+.catalog-intro__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: var(--brand-lime);
+  color: var(--brand-ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.catalog-intro__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 900;
+  font-variation-settings: 'SOFT' 100, 'opsz' 144;
+  letter-spacing: -0.02em;
+  color: var(--brand-pink);
+  text-transform: lowercase;
+}
+
+.catalog-intro__tagline {
+  font-weight: 600;
+  color: var(--brand-ink);
 }
 
 /* Hide scrollbar on category pills while keeping scroll */
@@ -60,7 +153,23 @@ body.app-shell {
   display: none;
 }
 
-/* Bottom sheet enter/leave */
+.pill-active {
+  background-color: var(--brand-pink);
+  border-color: var(--brand-pink);
+  color: #fff;
+}
+
+.pill-idle {
+  background-color: #fff;
+  border-color: #e5e5e5;
+  color: #3f3f3f;
+}
+
+.pill-idle:hover {
+  border-color: var(--brand-lime);
+  background-color: var(--brand-lime-soft);
+}
+
 [x-cloak] {
   display: none !important;
 }
@@ -76,11 +185,11 @@ body.app-shell {
 }
 
 .cta-whatsapp {
-  background-color: var(--brand-accent);
+  background-color: var(--brand-pink);
 }
 
 .cta-whatsapp:hover {
-  background-color: var(--brand-accent-hover);
+  background-color: var(--brand-pink-hover);
 }
 
 .share-toast {
@@ -92,9 +201,13 @@ body.app-shell {
   animation-delay: calc(min(var(--card-i, 0), 8) * 35ms);
 }
 
+.badge-pill {
+  background: color-mix(in srgb, var(--brand-lime) 88%, white);
+  color: var(--brand-ink);
+}
+
 .img-fallback {
-  background:
-    linear-gradient(135deg, #e7e5e4 0%, #d6d3d1 100%);
+  background: linear-gradient(135deg, var(--brand-lime-soft) 0%, #f3f4f6 100%);
   object-fit: none;
   min-height: 100%;
 }
@@ -140,7 +253,7 @@ body.app-shell {
   .catalog-intro,
   .product-card,
   .share-toast,
-  .brand-mark::after {
+  .brand-mark {
     animation: none !important;
     transition: none !important;
   }

@@ -1,7 +1,8 @@
 document.addEventListener('alpine:init', () => {
   Alpine.data('catalogApp', () => ({
-    brandName: window.VITRINE_CONFIG?.brandName || 'Maison Nuée',
-    whatsappNumber: window.VITRINE_CONFIG?.whatsappNumber || '5511999999999',
+    brandName: window.VITRINE_CONFIG?.brandName || 'Wimari',
+    brandTagline: window.VITRINE_CONFIG?.brandTagline || 'cosmeticos & Perfumaria',
+    whatsappNumber: window.VITRINE_CONFIG?.whatsappNumber || '555194657868',
 
     loading: true,
     error: null,

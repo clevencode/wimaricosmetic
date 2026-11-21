@@ -1,6 +1,6 @@
 # Wimari — Vitrine Digital
 
-Catálogo mobile-first de **cosméticos & perfumaria** sem carrinho e sem pagamento. Visitantes filtram produtos e iniciam conversa no WhatsApp com nome e referência já preenchidos.
+Catálogo mobile-first de **cosméticos & perfumaria** sem carrinho e sem pagamento. Visitantes filtram produtos, informam contato básico e abrem o WhatsApp com mensagem pronta (produto + dados do lead).
 
 ## Como abrir
 
@@ -53,7 +53,8 @@ Se a lista do admin parecer antiga, limpe o localStorage ou use **Descartar loca
 
 - Busca + filtro de categoria combinados
 - Bottom sheet (mobile) / modal (desktop) com specs
-- CTA WhatsApp com mensagem automática
+- CTA WhatsApp com formulário de contato (nome + WhatsApp; cidade opcional) e mensagem automática
+- Lead pré-preenchido via `localStorage` (`wimari_lead_v1`) — ver `js/quote-lead.js`
 - Compartilhar via Web Share API (fallback: copiar link)
 - Deep link `#produto/{id}`
 - Empty state com “Limpar filtros”

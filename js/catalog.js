@@ -13,6 +13,7 @@ document.addEventListener('alpine:init', () => {
 
     searchQuery: '',
     activeCategory: 'all',
+    filterMenuOpen: false,
 
     selectedProduct: null,
     galleryIndex: 0,
@@ -21,6 +22,12 @@ document.addEventListener('alpine:init', () => {
 
     shareFeedback: '',
     shareFeedbackTimer: null,
+
+    // Orçamento WhatsApp — lead de contato (caminho único)
+    leadOpen: false,
+    leadProduct: null,
+    leadForm: { name: '', phone: '', city: '' },
+    leadErrors: {},
 
     async init() {
       try {
@@ -31,6 +38,7 @@ document.addEventListener('alpine:init', () => {
         this.products = catalog.products || [];
         this.dataSource = source;
         this.previewMode = Boolean(preview);
+        this.hydrateLeadForm();
         this.openFromHash();
       } catch (err) {
         this.error = err?.message || 'Erro ao carregar produtos.';
@@ -40,6 +48,12 @@ document.addEventListener('alpine:init', () => {
 
       window.addEventListener('hashchange', () => this.openFromHash());
       window.addEventListener('keydown', (e) => this.onGlobalKeydown(e));
+    },
+
+    hydrateLeadForm() {
+      const QuoteLead = window.QuoteLead;
+      if (!QuoteLead) return;
+      this.leadForm = QuoteLead.load();
     },
 
     get filteredProducts() {
@@ -83,9 +97,28 @@ document.addEventListener('alpine:init', () => {
       this.activeCategory = slug;
     },
 
+    toggleFilterMenu() {
+      this.filterMenuOpen = !this.filterMenuOpen;
+    },
+
+    closeFilterMenu() {
+      this.filterMenuOpen = false;
+    },
+
+    applyCategory(slug) {
+      this.setCategory(slug);
+      this.closeFilterMenu();
+    },
+
+    get activeCategoryLabel() {
+      if (this.activeCategory === 'all') return 'Todos';
+      return this.categories.find((c) => c.slug === this.activeCategory)?.label || this.activeCategory;
+    },
+
     clearFilters() {
       this.searchQuery = '';
       this.activeCategory = 'all';
+      this.closeFilterMenu();
     },
 
     onImageError(event) {
@@ -121,6 +154,14 @@ document.addEventListener('alpine:init', () => {
     },
 
     onGlobalKeydown(e) {
+      if (this.leadOpen) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          this.closeQuoteLead();
+        }
+        return;
+      }
+
       if (!this.sheetOpen) return;
 
       if (e.key === 'Escape') {
@@ -203,19 +244,79 @@ document.addEventListener('alpine:init', () => {
       this.galleryIndex = (this.galleryIndex - 1 + imgs.length) % imgs.length;
     },
 
-    whatsappMessage(product) {
-      if (!product) {
-        return `Olá! Gostaria de falar com a ${this.brandName}.`;
+    openQuoteLead(product = null) {
+      const QuoteLead = window.QuoteLead;
+      if (!QuoteLead) {
+        this.showShareFeedback('Fluxo de orçamento indisponível');
+        return;
       }
-      if (!this.isAvailable(product)) {
-        return `Olá! Gostaria de consultar a disponibilidade do produto ${product.name} (Ref: ${product.ref}).`;
-      }
-      return `Olá! Tenho interesse no produto ${product.name} (Ref: ${product.ref}).`;
+      this.hydrateLeadForm();
+      this.leadErrors = {};
+      this.leadProduct = product || null;
+      this.leadOpen = true;
+      document.body.style.overflow = 'hidden';
+      this.$nextTick(() => {
+        this.$refs.leadNameInput?.focus();
+      });
     },
 
-    whatsappUrl(product) {
-      const text = encodeURIComponent(this.whatsappMessage(product));
-      return `https://wa.me/${this.whatsappNumber}?text=${text}`;
+    closeQuoteLead() {
+      this.leadOpen = false;
+      this.leadProduct = null;
+      this.leadErrors = {};
+      if (!this.sheetOpen) {
+        document.body.style.overflow = '';
+      }
+    },
+
+    onLeadPhoneInput(event) {
+      const QuoteLead = window.QuoteLead;
+      if (!QuoteLead) return;
+      this.leadForm.phone = QuoteLead.formatPhoneInput(event?.target?.value);
+    },
+
+    get leadTitle() {
+      if (this.leadProduct && !this.isAvailable(this.leadProduct)) {
+        return 'Consultar disponibilidade';
+      }
+      if (this.leadProduct) return 'Solicitar orçamento';
+      return 'Falar no WhatsApp';
+    },
+
+    get leadSubmitLabel() {
+      if (this.leadProduct && !this.isAvailable(this.leadProduct)) {
+        return 'Continuar no WhatsApp';
+      }
+      if (this.leadProduct) return 'Enviar orçamento no WhatsApp';
+      return 'Abrir WhatsApp';
+    },
+
+    submitQuoteLead() {
+      const QuoteLead = window.QuoteLead;
+      if (!QuoteLead) return;
+
+      const result = QuoteLead.validate(this.leadForm);
+      this.leadErrors = result.errors;
+      if (!result.ok) {
+        if (result.errors.name) this.$refs.leadNameInput?.focus();
+        else if (result.errors.phone) this.$refs.leadPhoneInput?.focus();
+        return;
+      }
+
+      const lead = QuoteLead.save(result.lead);
+      this.leadForm = { ...lead };
+
+      const product = this.leadProduct;
+      const message = QuoteLead.buildWhatsAppMessage({
+        brandName: this.brandName,
+        product,
+        lead,
+        available: product ? this.isAvailable(product) : true,
+      });
+      const url = QuoteLead.buildWhatsAppUrl(this.whatsappNumber, message);
+
+      this.closeQuoteLead();
+      window.open(url, '_blank', 'noopener,noreferrer');
     },
 
     productShareUrl(product) {

@@ -18,18 +18,28 @@ Depois abra o endereço indicado no terminal (geralmente `http://localhost:3000`
 | Painel admin | `http://localhost:3000/admin/` |
 | Preview dos dados locais | `http://localhost:3000/?preview=1` |
 
-## Painel admin (MVP local)
+## Admin platform Wimari (MVP local)
 
-Área para a vendedora editar o catálogo: **imagens (URLs)**, **disponibilidade** e **detalhes**.
+Fluxo do painel (`/admin/`):
+
+1. **Início** — Ver produtos criados · Criar novo produto  
+2. **Visualizador de Produtos Criados** (mobile) — busca, chips, cards, bottom nav + FAB `+`  
+3. **Criar / Editar Produto** — mesmo stepper 3 passos (visual → descrição → preço/estoque); rascunho, publicar/salvar ou remover (na edição)
+
+Campos extras: `stock`, `stockAlert`, `draft`, `costPrice`, `actives`, `usage`, `composition`, `hasVariations`, `variations`.  
+Estoque baixo usa `stockAlert` do produto (fallback: `lowStockThreshold` em `js/config.js`).
 
 - Sem autenticação nesta fase (aviso no topo do painel)
-- Edições ficam no **localStorage** do navegador
+- Edições ficam no **localStorage** do navegador (`wimari_catalog_v3`)
+- Fotos no create: upload câmera/galeria (comprimidas em data URL, máx. 5)
+- “Gerar com IA”: template local a partir do nome + ativos (sem API externa)
 - A vitrine pública continua lendo `data/products.json` até você exportar e substituir o arquivo
 - Use **Exportar JSON** no admin, baixe `products.json` e substitua `data/products.json` para publicar
 - **Preview** (`/?preview=1`) mostra a vitrine com os dados locais do admin, antes de publicar
-- **Descartar alterações locais** volta ao conteúdo do arquivo seed
+- Rascunhos (`draft: true`) **não** entram na vitrine pública
+- Produtos com `available: false` **aparecem** na vitrine com o selo “Indisponível”
 
-Produtos com `available: false` **aparecem** na vitrine com o selo “Indisponível” (CTA vira consulta de disponibilidade).
+Se a lista do admin parecer antiga, limpe o localStorage ou use **Descartar locais**.
 
 ## Personalizar
 
@@ -52,6 +62,14 @@ Produtos com `available: false` **aparecem** na vitrine com o selo “Indisponí
 ## Stack
 
 HTML5 + Tailwind CSS (CDN) + Alpine.js + JSON estático (+ localStorage no admin).
+
+## Ícones
+
+Padronizados em [`css/icons.css`](css/icons.css):
+
+- Classe base `.icon` — outline 24×24, `stroke-width: 2`, caps arredondados
+- Tamanhos: `.icon--sm` · `.icon--md` · `.icon--lg` · `.icon--xl`
+- Exceção de marca: `.icon--brand` (WhatsApp filled)
 
 ## Marca
 

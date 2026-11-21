@@ -45,6 +45,7 @@ document.addEventListener('alpine:init', () => {
     get filteredProducts() {
       const q = this.searchQuery.trim().toLowerCase();
       return this.products.filter((p) => {
+        if (p.draft === true) return false;
         const catOk =
           this.activeCategory === 'all' || p.category?.slug === this.activeCategory;
         if (!catOk) return false;

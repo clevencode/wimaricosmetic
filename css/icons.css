@@ -1,0 +1,43 @@
+/**
+ * Ícones padronizados — Wimari (vitrine + admin)
+ * Padrão: outline 24×24, stroke 2, round caps.
+ * Exceção: .icon--brand (WhatsApp e logos filled).
+ */
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.icon--sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon--md {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.icon--lg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.icon--xl {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+/* Marcas / logos com path filled (ex.: WhatsApp) */
+.icon--brand {
+  fill: currentColor;
+  stroke: none;
+}

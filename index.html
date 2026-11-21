@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="Wimari cosméticos & Perfumaria — vitrine digital. Navegue e solicite orçamento no WhatsApp." />
-    <title>Wimari — Catálogo</title>
+    <title>Wimari — Cosméticos &amp; Perfumaria</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -44,252 +44,267 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
   </head>
   <body class="app-shell text-brand-ink font-sans antialiased" x-data="catalogApp" x-cloak>
-    <!-- Sticky header -->
-    <header class="sticky top-0 z-40 border-b border-black/5 bg-white/90 backdrop-blur-md">
-      <div class="mx-auto max-w-6xl px-3 pt-3 pb-2 sm:px-4">
-        <div class="flex items-center gap-3">
-          <a href="./" class="brand-mark min-w-0 shrink-0" :aria-label="brandName + ' — início'">
-            <span class="brand-lockup">
+    <header
+      x-show="view !== 'home'"
+      x-cloak
+      class="site-header sticky top-0 z-40"
+    >
+      <div class="mx-auto max-w-6xl px-3 sm:px-4" @keydown.escape.window="filterMenuOpen && closeFilterMenu()">
+        <div class="site-header__row site-header__row--tools">
+          <button
+            type="button"
+            x-show="view === 'about'"
+            x-cloak
+            class="brand-mark min-w-0 shrink-0"
+            @click="setView('home')"
+            :aria-label="brandName + ' — início'"
+          >
+            <span class="brand-lockup brand-lockup--nav">
               <span class="brand-lockup__word" x-text="brandName.toLowerCase()">wimari</span>
-              <span class="brand-lockup__row">
-                <span class="brand-lockup__tagline" x-text="brandTagline">cosmeticos &amp; Perfumaria</span>
-                <span class="brand-lockup__accent" aria-hidden="true"></span>
-              </span>
             </span>
-          </a>
+          </button>
 
-          <div class="ml-auto flex items-center gap-2">
-            <button
-              type="button"
-              @click="openQuoteLead(null)"
-              class="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-brand-ink transition hover:border-brand-lime hover:bg-brand-lime/40"
-            >
-              <svg class="icon icon--sm icon--brand text-brand-accent" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+          <div x-show="view === 'products'" x-cloak class="site-header__search">
+            <div class="search-bar">
+              <svg class="icon icon--sm search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
-              Contato
-            </button>
-          </div>
-        </div>
-
-        <!-- Search + filtro -->
-        <div class="search-bar mt-3" @keydown.escape.window="filterMenuOpen && closeFilterMenu()">
-          <svg class="icon icon--sm search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
-          <label class="sr-only" for="search">Buscar produtos</label>
-          <input
-            id="search"
-            type="search"
-            class="search-bar__input"
-            placeholder="Buscar por nome ou código…"
-            x-model.debounce.150ms="searchQuery"
-            autocomplete="off"
-          />
-          <div class="search-bar__filter" @click.outside="closeFilterMenu()">
-            <button
-              type="button"
-              class="search-bar__filter-btn"
-              :class="{ 'search-bar__filter-btn--active': filterMenuOpen || activeCategory !== 'all' }"
-              @click="toggleFilterMenu()"
-              :aria-expanded="filterMenuOpen"
-              aria-haspopup="menu"
-              aria-controls="vitrine-filter-menu"
-              :aria-label="activeCategoryLabel === 'Todos' ? 'Abrir filtros' : ('Filtro: ' + activeCategoryLabel)"
-            >
-              <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 6h16" />
-                <path d="M7 12h10" />
-                <path d="M10 18h4" />
-              </svg>
-            </button>
-            <div
-              id="vitrine-filter-menu"
-              x-show="filterMenuOpen"
-              x-cloak
-              x-transition
-              class="filter-menu"
-              role="menu"
-              aria-label="Opções de filtro"
-            >
-              <p class="filter-menu__label">Categoria</p>
-              <button
-                type="button"
-                role="menuitem"
-                class="filter-menu__item"
-                :class="{ 'filter-menu__item--on': activeCategory === 'all' }"
-                @click="applyCategory('all')"
-              >
-                Todos
-              </button>
-              <template x-for="cat in categories" :key="cat.slug">
+              <label class="sr-only" for="search">Buscar produtos</label>
+              <input
+                id="search"
+                type="search"
+                class="search-bar__input"
+                placeholder="Buscar por nome ou código…"
+                x-model.debounce.150ms="searchQuery"
+                autocomplete="off"
+              />
+              <div class="search-bar__filter" @click.outside="closeFilterMenu()">
                 <button
                   type="button"
-                  role="menuitem"
-                  class="filter-menu__item"
-                  :class="{ 'filter-menu__item--on': activeCategory === cat.slug }"
-                  @click="applyCategory(cat.slug)"
-                  x-text="cat.label"
-                ></button>
-              </template>
+                  class="search-bar__filter-btn"
+                  :class="{ 'search-bar__filter-btn--active': filterMenuOpen || activeCategory !== 'all' }"
+                  @click="toggleFilterMenu()"
+                  :aria-expanded="filterMenuOpen"
+                  aria-haspopup="menu"
+                  aria-controls="vitrine-filter-menu"
+                  :aria-label="activeCategoryLabel === 'Todos' ? 'Filtrar' : ('Filtro: ' + activeCategoryLabel)"
+                >
+                  Filtrar
+                </button>
+                <div
+                  id="vitrine-filter-menu"
+                  x-show="filterMenuOpen"
+                  x-cloak
+                  x-transition
+                  class="filter-menu"
+                  role="menu"
+                  aria-label="Opções de filtro"
+                >
+                  <p class="filter-menu__label">Categoria</p>
+                  <button type="button" role="menuitem" class="filter-menu__item" :class="{ 'filter-menu__item--on': activeCategory === 'all' }" @click="applyCategory('all')">Todos</button>
+                  <template x-for="cat in categories" :key="cat.slug">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="filter-menu__item"
+                      :class="{ 'filter-menu__item--on': activeCategory === cat.slug }"
+                      @click="applyCategory(cat.slug)"
+                      x-text="cat.label"
+                    ></button>
+                  </template>
+                </div>
+              </div>
             </div>
           </div>
+
+          <div class="site-header__actions">
+            <nav class="site-nav site-nav--desktop" aria-label="Principal">
+              <button type="button" class="site-nav__link" :class="{ 'site-nav__link--on': view === 'home' }" @click="setView('home')">Home</button>
+              <button type="button" class="site-nav__link" :class="{ 'site-nav__link--on': view === 'products' }" @click="setView('products')">Produtos</button>
+              <button type="button" class="site-nav__link" :class="{ 'site-nav__link--on': view === 'about' }" @click="setView('about')">Sobre</button>
+            </nav>
+
+            <button
+              type="button"
+              class="site-header__menu"
+              @click="toggleNav()"
+              :aria-expanded="navOpen"
+              aria-controls="site-nav-mobile"
+              aria-label="Abrir menu"
+            >
+              <svg x-show="!navOpen" class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+              <svg x-show="navOpen" x-cloak class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
         </div>
-        <p x-show="activeCategory !== 'all'" class="filter-active-hint mt-2" x-cloak>
+
+        <nav
+          id="site-nav-mobile"
+          class="site-nav site-nav--mobile"
+          x-show="navOpen"
+          x-cloak
+          x-transition
+          aria-label="Principal mobile"
+          @click.outside="closeNav()"
+        >
+          <button type="button" class="site-nav__link" :class="{ 'site-nav__link--on': view === 'home' }" @click="setView('home')">Home</button>
+          <button type="button" class="site-nav__link" :class="{ 'site-nav__link--on': view === 'products' }" @click="setView('products')">Produtos</button>
+          <button type="button" class="site-nav__link" :class="{ 'site-nav__link--on': view === 'about' }" @click="setView('about')">Sobre</button>
+        </nav>
+
+        <p x-show="view === 'products' && activeCategory !== 'all'" class="filter-active-hint pb-3" x-cloak>
           Filtro: <span x-text="activeCategoryLabel"></span>
           <button type="button" class="filter-active-hint__clear" @click="applyCategory('all')">Limpar</button>
         </p>
       </div>
     </header>
 
-    <main class="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-6">
-      <!-- Catalog intro -->
-      <section
-        x-show="!loading && !error"
-        x-cloak
-        class="catalog-intro mb-5 sm:mb-6"
-        aria-label="Apresentação do catálogo"
-      >
-        <p class="catalog-intro__tag">Catálogo</p>
-        <h1 class="catalog-intro__title mt-3 text-3xl sm:text-4xl">
-          <span x-text="brandName"></span>
-        </h1>
-        <p class="catalog-intro__tagline mt-1 text-sm sm:text-base" x-text="brandTagline"></p>
-        <p class="mt-2 max-w-xl text-sm leading-relaxed text-brand-muted">
-          Filtre, abra o detalhe e solicite orçamento no WhatsApp — sem carrinho.
-        </p>
-        <p
-          x-show="previewMode"
-          x-cloak
-          class="mt-3 inline-flex rounded-full bg-brand-lime/70 px-3 py-1 text-[11px] font-semibold text-brand-ink"
-        >
-          Preview dos dados locais do admin
-        </p>
+    <main>
+      <!-- HOME -->
+      <section x-show="view === 'home'" x-cloak class="home-hero" aria-label="Início">
+        <div class="home-hero__media" aria-hidden="true">
+          <img
+            src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1600&q=80"
+            alt=""
+            class="home-hero__img"
+          />
+          <div class="home-hero__veil"></div>
+        </div>
+        <div class="home-hero__content">
+          <p class="home-hero__brand" x-text="brandName.toLowerCase()">wimari</p>
+          <h1 class="home-hero__title">Beleza com presença</h1>
+          <p class="home-hero__text">
+            Cosméticos &amp; perfumaria para montar sua rotina — orçamento direto no WhatsApp.
+          </p>
+          <div class="home-hero__actions">
+            <button type="button" class="home-hero__cta" @click="setView('products')">Ver produtos</button>
+            <button type="button" class="home-hero__cta home-hero__cta--ghost" @click="openQuoteLead(null)">Falar no WhatsApp</button>
+          </div>
+        </div>
       </section>
 
-      <!-- Results meta -->
-      <div
-        x-show="!loading && !error"
-        x-cloak
-        class="mb-3 flex items-center justify-between gap-3"
-      >
-        <p class="text-xs font-medium text-brand-muted" aria-live="polite" x-text="resultsLabel"></p>
-        <button
-          type="button"
-          x-show="hasActiveFilters"
-          @click="clearFilters()"
-          class="text-xs font-semibold text-brand-accent transition hover:text-brand-pink-hover"
-        >
-          Limpar filtros
-        </button>
-      </div>
-
-      <!-- Loading -->
-      <div x-show="loading" class="py-16 text-center text-sm text-brand-muted">
-        Carregando catálogo…
-      </div>
-
-      <!-- Error -->
-      <div x-show="!loading && error" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-800" x-text="error"></div>
-
-      <!-- Empty state -->
-      <div
-        x-show="!loading && !error && filteredProducts.length === 0"
-        class="flex flex-col items-center justify-center px-4 py-16 text-center"
-      >
-        <p class="text-base font-semibold text-brand-ink">Nenhum produto encontrado</p>
-        <p class="mt-1 max-w-xs text-sm text-brand-muted">
-          Tente outro termo ou limpe os filtros para ver o catálogo completo.
-        </p>
-        <button
-          type="button"
-          @click="clearFilters()"
-          class="mt-5 rounded-full bg-brand-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-pink-hover"
-        >
-          Limpar filtros
-        </button>
-      </div>
-
-      <!-- Product grid -->
-      <div
-        x-show="!loading && !error && filteredProducts.length > 0"
-        class="product-grid grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 md:gap-4"
-      >
-        <template x-for="(product, index) in filteredProducts" :key="product.id">
-          <article class="product-card" :style="`--card-i: ${index}`">
-            <button
-              type="button"
-              @click="openProduct(product)"
-              class="group w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
-            >
-              <div class="relative aspect-[4/5] overflow-hidden rounded-xl bg-brand-lime/30">
-                <img
-                  :src="product.images[0]"
-                  :alt="product.name"
-                  loading="lazy"
-                  decoding="async"
-                  @error="onImageError($event)"
-                  class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                />
-                <span
-                  x-show="!isAvailable(product)"
-                  class="badge-unavailable absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm"
-                >
-                  Indisponível
-                </span>
-                <span
-                  x-show="isAvailable(product) && product.badge"
-                  class="badge-pill absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm"
-                  x-text="product.badge"
-                ></span>
-              </div>
-              <div class="mt-2 space-y-0.5 px-0.5">
-                <p class="text-[10px] font-semibold uppercase tracking-wider text-brand-muted" x-text="product.category.label"></p>
-                <h2 class="line-clamp-2 text-sm font-semibold leading-snug text-brand-ink" x-text="product.name"></h2>
-                <p class="text-sm font-bold text-brand-pink" x-text="formatPrice(product.price)"></p>
-              </div>
-            </button>
-          </article>
-        </template>
-      </div>
-    </main>
-
-    <footer class="site-footer" aria-label="Rodapé">
-      <div class="mx-auto flex max-w-6xl flex-col gap-5 px-3 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-4 sm:py-10">
-        <div class="min-w-0">
-          <a href="./" class="brand-mark" :aria-label="brandName + ' — início'">
-            <span class="brand-lockup brand-lockup--footer">
-              <span class="brand-lockup__word" x-text="brandName.toLowerCase()">wimari</span>
-              <span class="brand-lockup__row">
-                <span class="brand-lockup__tagline" x-text="brandTagline">cosmeticos &amp; Perfumaria</span>
-                <span class="brand-lockup__accent" aria-hidden="true"></span>
-              </span>
-            </span>
-          </a>
-          <p class="mt-3 max-w-sm text-sm leading-relaxed text-brand-muted">
-            Vitrine digital — filtre produtos e peça orçamento no WhatsApp.
+      <!-- PRODUTOS -->
+      <div x-show="view === 'products'" x-cloak class="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-6">
+        <section class="catalog-intro mb-5 sm:mb-6" aria-label="Catálogo">
+          <p class="catalog-intro__tag">Catálogo</p>
+          <h1 class="catalog-intro__title mt-3 text-3xl sm:text-4xl">
+            <span x-text="brandName"></span>
+          </h1>
+          <p class="catalog-intro__tagline mt-1 text-sm sm:text-base" x-text="brandTagline"></p>
+          <p class="mt-2 max-w-xl text-sm leading-relaxed text-brand-muted">
+            Filtre, abra o detalhe e solicite orçamento no WhatsApp — sem carrinho.
           </p>
-        </div>
+          <p
+            x-show="previewMode"
+            x-cloak
+            class="mt-3 inline-flex rounded-full bg-brand-lime/70 px-3 py-1 text-[11px] font-semibold text-brand-ink"
+          >
+            Preview dos dados locais do admin
+          </p>
+        </section>
 
-        <div class="flex flex-col gap-3 sm:items-end">
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <p class="text-xs font-medium text-brand-muted" aria-live="polite" x-text="loading ? 'Carregando…' : resultsLabel"></p>
           <button
             type="button"
-            @click="openQuoteLead(null)"
-            class="inline-flex w-fit items-center gap-2 rounded-full bg-brand-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-pink-hover"
+            x-show="hasActiveFilters"
+            @click="clearFilters()"
+            class="text-xs font-semibold text-brand-accent transition hover:text-brand-pink-hover"
           >
+            Limpar filtros
+          </button>
+        </div>
+
+        <div x-show="loading" class="py-16 text-center text-sm text-brand-muted">Carregando catálogo…</div>
+        <div x-show="!loading && error" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-800" x-text="error"></div>
+
+        <div
+          x-show="!loading && !error && filteredProducts.length === 0"
+          class="flex flex-col items-center justify-center px-4 py-16 text-center"
+        >
+          <p class="text-base font-semibold text-brand-ink">Nenhum produto encontrado</p>
+          <p class="mt-1 max-w-xs text-sm text-brand-muted">
+            Tente outro termo ou limpe os filtros para ver o catálogo completo.
+          </p>
+          <button
+            type="button"
+            @click="clearFilters()"
+            class="mt-5 rounded-full bg-brand-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-pink-hover"
+          >
+            Limpar filtros
+          </button>
+        </div>
+
+        <div
+          x-show="!loading && !error && filteredProducts.length > 0"
+          class="product-grid grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 md:gap-4"
+        >
+          <template x-for="(product, index) in filteredProducts" :key="product.id">
+            <article class="product-card" :style="`--card-i: ${index}`">
+              <button
+                type="button"
+                @click="openProduct(product)"
+                class="group w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+              >
+                <div class="relative aspect-[4/5] overflow-hidden rounded-xl bg-brand-lime/30">
+                  <img
+                    :src="product.images[0]"
+                    :alt="product.name"
+                    loading="lazy"
+                    decoding="async"
+                    @error="onImageError($event)"
+                    class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                  />
+                  <span
+                    x-show="!isAvailable(product)"
+                    class="badge-unavailable absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm"
+                  >
+                    Indisponível
+                  </span>
+                  <span
+                    x-show="isAvailable(product) && product.badge"
+                    class="badge-pill absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm"
+                    x-text="product.badge"
+                  ></span>
+                </div>
+                <div class="mt-2 space-y-0.5 px-0.5">
+                  <p class="text-[10px] font-semibold uppercase tracking-wider text-brand-muted" x-text="product.category.label"></p>
+                  <h2 class="line-clamp-2 text-sm font-semibold leading-snug text-brand-ink" x-text="product.name"></h2>
+                  <p class="text-sm font-bold text-brand-pink" x-text="formatPrice(product.price)"></p>
+                </div>
+              </button>
+            </article>
+          </template>
+        </div>
+      </div>
+
+      <!-- SOBRE (+ contato) -->
+      <section x-show="view === 'about'" x-cloak class="page-panel" aria-labelledby="about-title">
+        <p class="page-panel__kicker">Sobre</p>
+        <h1 id="about-title" class="page-panel__title" x-text="brandName.toLowerCase()">wimari</h1>
+        <p class="page-panel__lead" x-text="brandTagline">cosmeticos &amp; Perfumaria</p>
+        <p class="page-panel__text">
+          A Wimari é uma vitrine de cosméticos e perfumaria pensada para quem quer escolher com calma e pedir orçamento sem carrinho nem checkout.
+          Abrimos o detalhe de cada produto e seguimos a conversa no WhatsApp.
+        </p>
+        <button type="button" class="home-hero__cta mt-6" @click="setView('products')">Explorar produtos</button>
+
+        <div class="page-panel__contact" aria-labelledby="contact-title">
+          <p class="page-panel__kicker">Contato</p>
+          <h2 id="contact-title" class="page-panel__subtitle">Vamos conversar</h2>
+          <p class="page-panel__text">
+            Conte o que você procura e receba orientação e orçamento pelo WhatsApp. Pedimos só nome e telefone para montar a mensagem.
+          </p>
+          <button type="button" class="cta-whatsapp lead-sheet__submit mt-5 max-w-sm" @click="openQuoteLead(null)">
             <svg class="icon icon--sm icon--brand" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
             </svg>
-            Falar no WhatsApp
+            Abrir contato no WhatsApp
           </button>
-          <p class="text-xs text-brand-muted">
-            © <span x-text="new Date().getFullYear()">2026</span>
-            <span x-text="brandName">Wimari</span>
-          </p>
         </div>
-      </div>
-    </footer>
+      </section>
+    </main>
 
     <!-- Product detail: backdrop + sheet/modal -->
     <div

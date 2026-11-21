@@ -18,6 +18,14 @@ Depois abra o endereço indicado no terminal (geralmente `http://localhost:3000`
 | Painel admin | `http://localhost:3000/admin/` |
 | Preview dos dados locais | `http://localhost:3000/?preview=1` |
 
+### Produção (Vercel)
+
+| Página | URL |
+| --- | --- |
+| Vitrine | https://wimaricosmetic.vercel.app/ |
+| Painel admin | https://wimaricosmetic.vercel.app/admin/ |
+| Preview dos dados locais | https://wimaricosmetic.vercel.app/?preview=1 |
+
 ## Admin platform Wimari (MVP local)
 
 Fluxo do painel (`/admin/`):
@@ -51,7 +59,8 @@ Se a lista do admin parecer antiga, limpe o localStorage ou use **Descartar loca
 
 ## Funcionalidades
 
-- Busca + filtro de categoria combinados
+- Tela inicial com navbar (Home · Produtos · Sobre) e rotas `#home` / `#produtos` / `#sobre` (contato dentro de Sobre; `#contato` redireciona)
+- Busca + filtro de categoria na página Produtos
 - Bottom sheet (mobile) / modal (desktop) com specs
 - CTA WhatsApp com formulário de contato (nome + WhatsApp; cidade opcional) e mensagem automática
 - Lead pré-preenchido via `localStorage` (`wimari_lead_v1`) — ver `js/quote-lead.js`

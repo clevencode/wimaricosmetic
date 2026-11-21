@@ -145,13 +145,9 @@
               :aria-expanded="filterMenuOpen"
               aria-haspopup="menu"
               aria-controls="filter-menu"
-              :aria-label="quickFilterLabel === 'Todos' ? 'Abrir filtros' : ('Filtro: ' + quickFilterLabel)"
+              :aria-label="quickFilterLabel === 'Todos' ? 'Filtrar' : ('Filtro: ' + quickFilterLabel)"
             >
-              <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 6h16" />
-                <path d="M7 12h10" />
-                <path d="M10 18h4" />
-              </svg>
+              Filtrar
             </button>
             <div
               id="filter-menu"

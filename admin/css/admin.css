@@ -280,12 +280,14 @@ body.admin-shell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.9rem;
   border-radius: 0.8rem;
   border: 0;
   background: var(--accent-soft);
   color: var(--accent-hover);
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .search-bar__filter-btn:active,

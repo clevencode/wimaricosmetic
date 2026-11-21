@@ -11,6 +11,10 @@ document.addEventListener('alpine:init', () => {
     dataSource: 'seed',
     previewMode: false,
 
+    // Páginas da vitrine: home | products | about
+    view: 'home',
+    navOpen: false,
+
     searchQuery: '',
     activeCategory: 'all',
     filterMenuOpen: false,
@@ -39,14 +43,14 @@ document.addEventListener('alpine:init', () => {
         this.dataSource = source;
         this.previewMode = Boolean(preview);
         this.hydrateLeadForm();
-        this.openFromHash();
+        this.syncFromHash();
       } catch (err) {
         this.error = err?.message || 'Erro ao carregar produtos.';
       } finally {
         this.loading = false;
       }
 
-      window.addEventListener('hashchange', () => this.openFromHash());
+      window.addEventListener('hashchange', () => this.syncFromHash());
       window.addEventListener('keydown', (e) => this.onGlobalKeydown(e));
     },
 
@@ -54,6 +58,57 @@ document.addEventListener('alpine:init', () => {
       const QuoteLead = window.QuoteLead;
       if (!QuoteLead) return;
       this.leadForm = QuoteLead.load();
+    },
+
+    setView(view, { updateHash = true } = {}) {
+      const allowed = ['home', 'products', 'about'];
+      const next = allowed.includes(view) ? view : 'home';
+      this.view = next;
+      this.navOpen = false;
+      this.filterMenuOpen = false;
+      if (updateHash) {
+        const map = {
+          home: '#home',
+          products: '#produtos',
+          about: '#sobre',
+        };
+        const hash = map[next];
+        if (location.hash !== hash) {
+          history.replaceState(null, '', location.pathname + location.search + hash);
+        }
+      }
+      window.scrollTo(0, 0);
+    },
+
+    toggleNav() {
+      this.navOpen = !this.navOpen;
+    },
+
+    closeNav() {
+      this.navOpen = false;
+    },
+
+    syncFromHash() {
+      const hash = location.hash || '';
+      const productMatch = hash.match(/^#produto\/(.+)$/);
+      if (productMatch) {
+        this.view = 'products';
+        this.navOpen = false;
+        const id = decodeURIComponent(productMatch[1]);
+        const product = this.products.find((p) => p.id === id);
+        if (product) {
+          if (!this.sheetOpen || this.selectedProduct?.id !== product.id) {
+            this.openProduct(product, { skipHash: true });
+          }
+        }
+        return;
+      }
+
+      if (this.sheetOpen) this.closeProduct({ skipHash: true });
+
+      if (hash === '#produtos') this.setView('products', { updateHash: false });
+      else if (hash === '#sobre' || hash === '#contato') this.setView('about', { updateHash: false });
+      else this.setView('home', { updateHash: false });
     },
 
     get filteredProducts() {
@@ -191,23 +246,27 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    openProduct(product) {
+    openProduct(product, { skipHash = false } = {}) {
+      this.view = 'products';
       this.lastFocusEl = document.activeElement;
       this.selectedProduct = product;
       this.galleryIndex = 0;
       this.sheetOpen = true;
       document.body.style.overflow = 'hidden';
-      history.replaceState(null, '', `#produto/${product.id}`);
+      if (!skipHash) {
+        history.replaceState(null, '', `#produto/${product.id}`);
+      }
       this.focusSheet();
     },
 
-    closeProduct() {
+    closeProduct({ skipHash = false } = {}) {
       this.sheetOpen = false;
       this.selectedProduct = null;
       this.galleryIndex = 0;
       document.body.style.overflow = '';
-      if (location.hash.startsWith('#produto/')) {
-        history.replaceState(null, '', location.pathname + location.search);
+      if (!skipHash && location.hash.startsWith('#produto/')) {
+        history.replaceState(null, '', location.pathname + location.search + '#produtos');
+        this.view = 'products';
       }
       this.$nextTick(() => {
         if (this.lastFocusEl && typeof this.lastFocusEl.focus === 'function') {
@@ -215,21 +274,6 @@ document.addEventListener('alpine:init', () => {
         }
         this.lastFocusEl = null;
       });
-    },
-
-    openFromHash() {
-      const match = location.hash.match(/^#produto\/(.+)$/);
-      if (!match) {
-        if (this.sheetOpen) this.closeProduct();
-        return;
-      }
-      const id = decodeURIComponent(match[1]);
-      const product = this.products.find((p) => p.id === id);
-      if (product) {
-        if (!this.sheetOpen || this.selectedProduct?.id !== product.id) {
-          this.openProduct(product);
-        }
-      }
     },
 
     nextImage() {

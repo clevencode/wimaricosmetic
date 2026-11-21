@@ -16,7 +16,6 @@ Depois abra o endereço indicado no terminal (geralmente `http://localhost:3000`
 | --- | --- |
 | Vitrine | `http://localhost:3000/` |
 | Painel admin | `http://localhost:3000/admin/` |
-| Preview dos dados locais | `http://localhost:3000/?preview=1` |
 
 ### Produção (Vercel)
 
@@ -24,30 +23,32 @@ Depois abra o endereço indicado no terminal (geralmente `http://localhost:3000`
 | --- | --- |
 | Vitrine | https://wimaricosmetic.vercel.app/ |
 | Painel admin | https://wimaricosmetic.vercel.app/admin/ |
-| Preview dos dados locais | https://wimaricosmetic.vercel.app/?preview=1 |
 
-## Admin platform Wimari (MVP local)
+## Admin + Firebase (zero custo Spark)
 
-Fluxo do painel (`/admin/`):
+Mesmo projeto Firebase do **BiblosApp** (`audiobible-9b689` ou o teu). Auth e-mail/senha, catálogo em Firestore `catalog/main`, fotos em Storage `product-images/`.
 
-1. **Início** — Ver produtos criados · Criar novo produto  
-2. **Visualizador de Produtos Criados** (mobile) — busca, chips, cards, bottom nav + FAB `+`  
-3. **Criar / Editar Produto** — mesmo stepper 3 passos (visual → descrição → preço/estoque); rascunho, publicar/salvar ou remover (na edição)
+### Setup rápido
 
-Campos extras: `stock`, `stockAlert`, `draft`, `costPrice`, `actives`, `usage`, `composition`, `hasVariations`, `variations`.  
-Estoque baixo usa `stockAlert` do produto (fallback: `lowStockThreshold` em `js/config.js`).
+1. Console Firebase → **Authentication** → ativar Email/Password → criar utilizadora da cliente  
+2. Publicar rules em [`firebase/firestore.rules`](firebase/firestore.rules) e [`firebase/storage.rules`](firebase/storage.rules)  
+3. Auth → Settings → **Authorized domains**: `localhost`, `wimaricosmetic.vercel.app`  
+4. Config local (não versionada):
 
-- Sem autenticação nesta fase (aviso no topo do painel)
-- Edições ficam no **localStorage** do navegador (`wimari_catalog_v3`)
-- Fotos no create: upload câmera/galeria (comprimidas em data URL, máx. 5)
-- “Gerar com IA”: template local a partir do nome + ativos (sem API externa)
-- A vitrine pública continua lendo `data/products.json` até você exportar e substituir o arquivo
-- Use **Exportar JSON** no admin, baixe `products.json` e substitua `data/products.json` para publicar
-- **Preview** (`/?preview=1`) mostra a vitrine com os dados locais do admin, antes de publicar
-- Rascunhos (`draft: true`) **não** entram na vitrine pública
-- Produtos com `available: false` **aparecem** na vitrine com o selo “Indisponível”
+```powershell
+# A partir das VITE_FIREBASE_* do BiblosApp → js/firebase-config.local.js
+# Ou copie js/firebase-config.example.js e preencha
+```
 
-Se a lista do admin parecer antiga, limpe o localStorage ou use **Descartar locais**.
+5. Abrir `/admin/` → login → no 1º acesso o seed `data/products.json` é enviado ao Firestore se o doc estiver vazio  
+
+### Fluxo do painel
+
+1. Login → **Início** / **Produtos** / criar-editar (stepper 3 passos)  
+2. Persistência **só no Firebase** (sem localStorage de catálogo)  
+3. Vitrine lê Firestore; se Firebase falhar/indisponível, fallback de leitura ao seed JSON  
+
+Rascunhos (`draft: true`) não entram na vitrine. `available: false` aparece com selo Indisponível.
 
 ## Personalizar
 
@@ -55,7 +56,8 @@ Se a lista do admin parecer antiga, limpe o localStorage ou use **Descartar loca
 | --- | --- |
 | Número do WhatsApp | `js/config.js` → `whatsappNumber` (somente dígitos, com DDI) |
 | Nome da marca | `js/config.js` → `brandName` / `brandTagline` |
-| Produtos / categorias | `data/products.json` (ou via `/admin`) |
+| Firebase | `js/firebase-config.local.js` (ver example) |
+| Seed inicial | `data/products.json` (só bootstrap) |
 
 ## Funcionalidades
 
@@ -67,11 +69,11 @@ Se a lista do admin parecer antiga, limpe o localStorage ou use **Descartar loca
 - Compartilhar via Web Share API (fallback: copiar link)
 - Deep link `#produto/{id}`
 - Empty state com “Limpar filtros”
-- Painel admin com CRUD local + export JSON
+- Painel admin com Auth Firebase + CRUD sincronizado (Firestore)
 
 ## Stack
 
-HTML5 + Tailwind CSS (CDN) + Alpine.js + JSON estático (+ localStorage no admin).
+HTML5 + Tailwind CSS (CDN) + Alpine.js + Firebase (Auth, Firestore, Storage) + seed JSON.
 
 ## Ícones
 

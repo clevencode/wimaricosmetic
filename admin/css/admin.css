@@ -1070,6 +1070,59 @@ body.admin-shell {
   }
 }
 
+.login-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.login-card {
+  width: min(100%, 22rem);
+  border-radius: 1.1rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 1.35rem 1.2rem 1.25rem;
+  box-shadow: 0 12px 32px rgba(26, 26, 26, 0.08);
+}
+
+.login-card__kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.login-card__title {
+  margin-top: 0.25rem;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.login-card__hint {
+  margin-top: 0.35rem;
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.login-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.login-card__error {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+
 .toast {
   animation: toast-in 0.25s ease-out;
 }

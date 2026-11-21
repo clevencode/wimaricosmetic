@@ -33,32 +33,51 @@
     <link rel="stylesheet" href="../css/icons.css" />
     <link rel="stylesheet" href="css/admin.css" />
 
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
     <script defer src="../js/config.js"></script>
+    <script defer src="../js/firebase-config.local.js"></script>
+    <script defer src="../js/firebase.js"></script>
     <script defer src="../js/catalog-store.js"></script>
+    <script defer src="js/auth.js"></script>
     <script defer src="js/admin.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
   </head>
   <body class="admin-shell font-sans antialiased" x-data="adminApp" x-cloak>
-    <div class="admin-banner" x-show="view !== 'create'">Área de edição — autenticação em breve</div>
+    <section x-show="authReady && !isLoggedIn && !error" class="login-screen" x-cloak>
+      <div class="login-card">
+        <p class="login-card__kicker">Wimari Admin</p>
+        <h1 class="login-card__title">Entrar</h1>
+        <p class="login-card__hint">Acesso da loja — Firebase Auth (mesmo projeto do BiblosApp).</p>
+        <form class="login-card__form" @submit.prevent="login()">
+          <label class="admin-label" for="auth-email">E-mail</label>
+          <input id="auth-email" type="email" class="admin-field" autocomplete="username" x-model="authEmail" required />
+          <label class="admin-label" for="auth-password">Senha</label>
+          <input id="auth-password" type="password" class="admin-field" autocomplete="current-password" x-model="authPassword" required />
+          <p x-show="authError" class="login-card__error" x-text="authError" x-cloak></p>
+          <button type="submit" class="btn btn-primary w-full" :disabled="authBusy" x-text="authBusy ? 'Entrando…' : 'Entrar'"></button>
+        </form>
+      </div>
+    </section>
 
-    <header class="admin-header sticky top-0 z-30" x-show="view === 'home'">
+    <header class="admin-header sticky top-0 z-30" x-show="isLoggedIn && view === 'home'" x-cloak>
       <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-3 py-3 sm:px-4">
         <button type="button" class="text-left text-sm font-semibold tracking-tight text-brand-ink" @click="goHome()">
           Wimari Admin
         </button>
         <div class="ml-auto flex flex-wrap items-center gap-2">
-          <span
-            class="source-pill"
-            :class="source === 'local' ? 'source-pill--local' : ''"
-            x-text="source === 'local' ? 'Dados locais' : 'Arquivo seed'"
-          ></span>
-          <a href="../?preview=1" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">Preview</a>
-          <a href="../" class="btn btn-ghost">Vitrine</a>
+          <span class="source-pill" x-text="source === 'firebase' ? 'Firebase' : 'Seed'"></span>
+          <a href="../" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">Vitrine</a>
+          <button type="button" class="btn btn-ghost" @click="logout()">Sair</button>
         </div>
       </div>
     </header>
 
     <main
+      x-show="isLoggedIn"
+      x-cloak
       class="mx-auto max-w-6xl"
       :class="view === 'create' ? 'px-0 py-0' : 'px-3 py-5 sm:px-4 sm:py-7'"
     >
@@ -69,7 +88,7 @@
       ></div>
 
       <!-- Home -->
-      <section x-show="!error && view === 'home'" class="home-screen viewer-screen">
+      <section x-show="!error && view === 'home' && navTab !== 'profile'" class="home-screen viewer-screen">
         <div x-show="loading" class="mx-auto max-w-lg space-y-3 pt-8">
           <div class="skeleton-block h-4 w-28"></div>
           <div class="skeleton-block h-8 w-64"></div>
@@ -114,7 +133,7 @@
       </section>
 
       <!-- Visualizador de Produtos Criados -->
-      <section x-show="!error && view === 'products'" class="viewer-screen">
+      <section x-show="!error && view === 'products' && navTab !== 'profile'" class="viewer-screen">
         <header class="mb-4">
           <p class="viewer-kicker">Wimari Admin</p>
           <h2 class="viewer-title">
@@ -261,18 +280,15 @@
             </template>
           </div>
 
-          <div class="mt-5 flex flex-wrap gap-2">
-            <button type="button" class="btn btn-ghost" @click="exportJson()">Exportar JSON</button>
-            <button
-              type="button"
-              x-show="source === 'local'"
-              class="btn btn-ghost"
-              @click="resetToSeed()"
-            >
-              Descartar locais
-            </button>
-          </div>
         </div>
+      </section>
+
+      <!-- Perfil -->
+      <section x-show="!error && navTab === 'profile' && view !== 'create'" class="viewer-screen" x-cloak>
+        <p class="viewer-kicker">Conta</p>
+        <h2 class="viewer-title">Perfil</h2>
+        <p class="mt-2 text-sm text-brand-muted">Logada como <span class="font-semibold text-brand-ink" x-text="authUser?.email || '—'"></span></p>
+        <button type="button" class="btn btn-primary mt-5" @click="logout()">Sair</button>
       </section>
 
       <!-- Criar Novo Produto (stepper) -->
@@ -448,7 +464,7 @@
     </main>
 
     <!-- Bottom navigation (produtos) -->
-    <nav x-show="view === 'home' || view === 'products'" class="bottom-nav" aria-label="Navegação principal">
+    <nav x-show="isLoggedIn && (view === 'home' || view === 'products' || navTab === 'profile')" class="bottom-nav" aria-label="Navegação principal">
       <button type="button" class="bottom-nav__item" :class="{ 'bottom-nav__item--active': navTab === 'home' }" @click="setNav('home')">
         <span class="bottom-nav__icon-wrap" aria-hidden="true">
           <svg class="icon icon--lg" viewBox="0 0 24 24">

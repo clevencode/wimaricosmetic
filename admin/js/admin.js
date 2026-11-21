@@ -6,6 +6,13 @@ document.addEventListener('alpine:init', () => {
     feedbackTimer: null,
     confirmDialog: null,
 
+    authReady: false,
+    authUser: null,
+    authEmail: '',
+    authPassword: '',
+    authError: '',
+    authBusy: false,
+
     view: 'home',
     navTab: 'home',
 
@@ -30,15 +37,66 @@ document.addEventListener('alpine:init', () => {
     uploadingPhotos: false,
 
     async init() {
+      this.lowStockThreshold = window.VITRINE_CONFIG?.lowStockThreshold ?? 10;
+      this.activeOptions = window.CatalogStore?.ACTIVE_OPTIONS || [];
+
+      if (!window.AdminAuth?.isReady?.()) {
+        this.error =
+          'Firebase não configurado. Crie js/firebase-config.local.js (ver firebase-config.example.js).';
+        this.authReady = true;
+        this.loading = false;
+        return;
+      }
+
+      window.AdminAuth.onAuth(async (user) => {
+        this.authUser = user;
+        this.authReady = true;
+        if (!user) {
+          this.categories = [];
+          this.products = [];
+          this.loading = false;
+          this.error = null;
+          return;
+        }
+        await this.loadCatalog();
+      });
+    },
+
+    get isLoggedIn() {
+      return Boolean(this.authUser);
+    },
+
+    async login() {
+      this.authError = '';
+      this.authBusy = true;
+      try {
+        await window.AdminAuth.signIn(this.authEmail, this.authPassword);
+        this.authPassword = '';
+      } catch (err) {
+        this.authError = err?.message || 'Falha no login.';
+      } finally {
+        this.authBusy = false;
+      }
+    },
+
+    async logout() {
+      await window.AdminAuth.signOut();
+      this.view = 'home';
+      this.navTab = 'home';
+      this.showFeedback('Sessão encerrada');
+    },
+
+    async loadCatalog() {
+      this.loading = true;
+      this.error = null;
       try {
         const store = window.CatalogStore;
         if (!store) throw new Error('CatalogStore não carregou.');
-        const { catalog, source } = await store.loadForAdmin('../data/products.json');
+        const { catalog, source, seeded } = await store.loadForAdmin('../data/products.json');
         this.categories = catalog.categories || [];
         this.products = catalog.products || [];
         this.source = source;
-        this.lowStockThreshold = window.VITRINE_CONFIG?.lowStockThreshold ?? 10;
-        this.activeOptions = store.ACTIVE_OPTIONS || [];
+        if (seeded) this.showFeedback('Catálogo inicial enviado ao Firebase');
       } catch (err) {
         this.error = err?.message || 'Erro ao carregar catálogo.';
       } finally {
@@ -65,8 +123,12 @@ document.addEventListener('alpine:init', () => {
         this.goHome();
         return;
       }
+      if (tab === 'profile') {
+        this.navTab = 'profile';
+        return;
+      }
       this.navTab = tab;
-      this.showFeedback(tab === 'orders' ? 'Pedidos em breve' : 'Perfil em breve');
+      this.showFeedback('Pedidos em breve');
     },
 
     get productsCountLabel() {
@@ -218,13 +280,13 @@ document.addEventListener('alpine:init', () => {
       return `${n} un.`;
     },
 
-    persist() {
+    async persist() {
       const store = window.CatalogStore;
-      store.saveLocal({
+      await store.saveCatalog({
         categories: this.categories,
         products: this.products,
       });
-      this.source = 'local';
+      this.source = 'firebase';
     },
 
     // —— Create stepper ——
@@ -432,13 +494,19 @@ document.addEventListener('alpine:init', () => {
       this.uploadingPhotos = true;
       try {
         const slice = files.slice(0, room);
+        let i = 0;
         for (const file of slice) {
           if (!file.type.startsWith('image/')) continue;
           const dataUrl = await this.compressImageFile(file);
-          this.createForm.images.push(dataUrl);
+          const url = await window.CatalogStore.uploadImage(dataUrl, {
+            productId: this.createForm.id || this.editingId || 'novo',
+            index: this.createForm.images.length + i,
+          });
+          this.createForm.images.push(url);
+          i += 1;
         }
-      } catch {
-        this.showFeedback('Não foi possível carregar a imagem');
+      } catch (err) {
+        this.showFeedback(err?.message || 'Não foi possível enviar a imagem');
       } finally {
         this.uploadingPhotos = false;
       }
@@ -533,7 +601,7 @@ document.addEventListener('alpine:init', () => {
       return product;
     },
 
-    commitFormProduct(product) {
+    async commitFormProduct(product) {
       if (this.editingId) {
         const idx = this.products.findIndex((p) => p.id === this.editingId);
         if (idx === -1) {
@@ -544,8 +612,13 @@ document.addEventListener('alpine:init', () => {
       } else {
         this.products.unshift(product);
       }
-      this.persist();
-      return true;
+      try {
+        await this.persist();
+        return true;
+      } catch (err) {
+        this.showFeedback(err?.message || 'Falha ao salvar no Firebase');
+        return false;
+      }
     },
 
     async saveCreateDraft() {
@@ -557,7 +630,7 @@ document.addEventListener('alpine:init', () => {
       });
       if (!ok) return;
       const product = this.buildCreateProduct(true);
-      if (!this.commitFormProduct(product)) return;
+      if (!(await this.commitFormProduct(product))) return;
       this.closeCreate();
       this.showFeedback('Rascunho salvo');
     },
@@ -575,12 +648,12 @@ document.addEventListener('alpine:init', () => {
         title: wasEditing ? 'Salvar alterações' : 'Publicar produto',
         message: wasEditing
           ? 'Confirmar e salvar as alterações deste produto?'
-          : 'Publicar este produto no catálogo local?',
+          : 'Publicar este produto no catálogo?',
         confirmLabel: wasEditing ? 'Salvar' : 'Publicar',
       });
       if (!ok) return;
       const product = this.buildCreateProduct(false);
-      if (!this.commitFormProduct(product)) return;
+      if (!(await this.commitFormProduct(product))) return;
       this.closeCreate();
       this.showFeedback(wasEditing ? 'Alterações salvas' : 'Produto publicado');
     },
@@ -590,38 +663,19 @@ document.addEventListener('alpine:init', () => {
       const name = (this.createForm?.name || '').trim() || 'este produto';
       const ok = await this.askConfirm({
         title: 'Remover produto',
-        message: `Remover “${name}” do catálogo local? Esta ação não pode ser desfeita aqui.`,
+        message: `Remover “${name}” do catálogo? Esta ação não pode ser desfeita aqui.`,
         confirmLabel: 'Remover',
         danger: true,
       });
       if (!ok) return;
       this.products = this.products.filter((p) => p.id !== this.editingId);
-      this.persist();
-      this.closeCreate();
-      this.showFeedback('Produto removido');
-    },
-
-    exportJson() {
-      window.CatalogStore.exportDownload({
-        categories: this.categories,
-        products: this.products,
-      });
-      this.showFeedback('JSON baixado — substitua data/products.json');
-    },
-
-    async resetToSeed() {
-      const ok = await this.askConfirm({
-        title: 'Descartar alterações',
-        message: 'Descartar o catálogo local e voltar ao arquivo seed?',
-        confirmLabel: 'Descartar',
-        danger: true,
-      });
-      if (!ok) return;
-      window.CatalogStore.clearLocal();
-      this.loading = true;
-      this.init().then(() => {
-        this.showFeedback('Alterações locais descartadas');
-      });
+      try {
+        await this.persist();
+        this.closeCreate();
+        this.showFeedback('Produto removido');
+      } catch (err) {
+        this.showFeedback(err?.message || 'Falha ao remover');
+      }
     },
 
     onImageError(event) {

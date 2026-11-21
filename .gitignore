@@ -10,3 +10,4 @@ dist/
 .idea/
 .vscode/
 *.local
+js/firebase-config.local.js

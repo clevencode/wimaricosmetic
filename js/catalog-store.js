@@ -1,10 +1,9 @@
 /**
- * Shared catalog persistence for vitrine + admin.
- * Seed: data/products.json | Drafts: localStorage | Publish: export JSON download
+ * Catálogo canónico — Firebase Firestore (catalog/main).
+ * Fallback de leitura: data/products.json só se Firebase não estiver configurado (dev).
+ * Escrita: apenas Firestore autenticado (sem dual path localStorage).
  */
 window.CatalogStore = (() => {
-  const STORAGE_KEY = 'wimari_catalog_v3';
-
   const CATEGORY_SKU_PREFIX = {
     skincare: 'SK',
     maquiagem: 'MQ',
@@ -66,81 +65,72 @@ window.CatalogStore = (() => {
     };
   }
 
-  function isPreviewMode() {
-    try {
-      return new URLSearchParams(window.location.search).get('preview') === '1';
-    } catch {
-      return false;
-    }
-  }
-
-  function hasLocal() {
-    try {
-      return Boolean(localStorage.getItem(STORAGE_KEY));
-    } catch {
-      return false;
-    }
-  }
-
-  function loadLocal() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      return normalizeCatalog(JSON.parse(raw));
-    } catch {
-      return null;
-    }
-  }
-
-  function saveLocal(catalog) {
-    const normalized = normalizeCatalog(catalog);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
-    return normalized;
-  }
-
-  function clearLocal() {
-    localStorage.removeItem(STORAGE_KEY);
+  function firebaseReady() {
+    return Boolean(window.WimariFirebase?.isConfigured?.());
   }
 
   async function fetchSeed(path) {
     const res = await fetch(path, { cache: 'no-store' });
-    if (!res.ok) throw new Error('Não foi possível carregar o catálogo.');
+    if (!res.ok) throw new Error('Não foi possível carregar o catálogo seed.');
     return normalizeCatalog(await res.json());
   }
 
+  async function loadFromFirebase() {
+    const raw = await window.WimariFirebase.loadCatalog();
+    if (!raw) return null;
+    return normalizeCatalog(raw);
+  }
+
+  async function saveCatalog(catalog) {
+    if (!firebaseReady()) {
+      throw new Error('Firebase não configurado — não é possível salvar.');
+    }
+    const normalized = normalizeCatalog(catalog);
+    await window.WimariFirebase.saveCatalog(normalized);
+    return normalized;
+  }
+
   async function loadForVitrine(seedPath) {
-    const seed = await fetchSeed(seedPath);
-    if (isPreviewMode()) {
-      const local = loadLocal();
-      if (local) {
-        return { catalog: local, source: 'local', preview: true };
+    if (firebaseReady()) {
+      try {
+        const cloud = await loadFromFirebase();
+        if (cloud) {
+          return { catalog: cloud, source: 'firebase', preview: false };
+        }
+      } catch (err) {
+        console.warn('[CatalogStore] Firebase leitura falhou, usando seed', err);
       }
     }
+    const seed = await fetchSeed(seedPath);
     return { catalog: seed, source: 'seed', preview: false };
   }
 
   async function loadForAdmin(seedPath) {
     const seed = await fetchSeed(seedPath);
-    const local = loadLocal();
-    if (local) {
-      return { catalog: local, source: 'local', seed };
+    if (!firebaseReady()) {
+      return { catalog: clone(seed), source: 'seed', seed, firebase: false };
     }
-    return { catalog: clone(seed), source: 'seed', seed };
-  }
-
-  function exportDownload(catalog, filename = 'products.json') {
-    const payload = normalizeCatalog(catalog);
-    const blob = new Blob([JSON.stringify(payload, null, 2) + '\n'], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    try {
+      let cloud = await loadFromFirebase();
+      if (!cloud) {
+        const result = await window.WimariFirebase.seedCatalogIfEmpty(seed);
+        cloud = normalizeCatalog(result.catalog);
+        return {
+          catalog: cloud,
+          source: 'firebase',
+          seed,
+          firebase: true,
+          seeded: result.seeded,
+        };
+      }
+      return { catalog: cloud, source: 'firebase', seed, firebase: true, seeded: false };
+    } catch (err) {
+      if (err?.code === 'auth/required' || /login/i.test(err?.message || '')) {
+        throw err;
+      }
+      console.warn('[CatalogStore] Admin Firebase falhou', err);
+      throw new Error(err?.message || 'Falha ao carregar catálogo no Firebase.');
+    }
   }
 
   function slugify(text) {
@@ -203,22 +193,23 @@ window.CatalogStore = (() => {
     });
   }
 
+  async function uploadImage(dataUrl, meta) {
+    if (!firebaseReady()) throw new Error('Firebase não configurado.');
+    return window.WimariFirebase.uploadProductImage(dataUrl, meta);
+  }
+
   return {
-    STORAGE_KEY,
     ACTIVE_OPTIONS,
     CATEGORY_SKU_PREFIX,
     clone,
     normalizeProduct,
     normalizeCatalog,
-    isPreviewMode,
-    hasLocal,
-    loadLocal,
-    saveLocal,
-    clearLocal,
+    firebaseReady,
     fetchSeed,
     loadForVitrine,
     loadForAdmin,
-    exportDownload,
+    saveCatalog,
+    uploadImage,
     slugify,
     uniqueId,
     categorySkuPrefix,

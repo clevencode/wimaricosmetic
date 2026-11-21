@@ -8,6 +8,8 @@ document.addEventListener('alpine:init', () => {
     error: null,
     products: [],
     categories: [],
+    dataSource: 'seed',
+    previewMode: false,
 
     searchQuery: '',
     activeCategory: 'all',
@@ -22,11 +24,13 @@ document.addEventListener('alpine:init', () => {
 
     async init() {
       try {
-        const res = await fetch('data/products.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Não foi possível carregar o catálogo.');
-        const data = await res.json();
-        this.categories = data.categories || [];
-        this.products = data.products || [];
+        const store = window.CatalogStore;
+        if (!store) throw new Error('CatalogStore não carregou.');
+        const { catalog, source, preview } = await store.loadForVitrine('data/products.json');
+        this.categories = catalog.categories || [];
+        this.products = catalog.products || [];
+        this.dataSource = source;
+        this.previewMode = Boolean(preview);
         this.openFromHash();
       } catch (err) {
         this.error = err?.message || 'Erro ao carregar produtos.';
@@ -49,6 +53,10 @@ document.addEventListener('alpine:init', () => {
         const ref = (p.ref || '').toLowerCase();
         return name.includes(q) || ref.includes(q);
       });
+    },
+
+    isAvailable(product) {
+      return product?.available !== false;
     },
 
     get hasActiveFilters() {
@@ -197,6 +205,9 @@ document.addEventListener('alpine:init', () => {
     whatsappMessage(product) {
       if (!product) {
         return `Olá! Gostaria de falar com a ${this.brandName}.`;
+      }
+      if (!this.isAvailable(product)) {
+        return `Olá! Gostaria de consultar a disponibilidade do produto ${product.name} (Ref: ${product.ref}).`;
       }
       return `Olá! Tenho interesse no produto ${product.name} (Ref: ${product.ref}).`;
     },

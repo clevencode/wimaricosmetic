@@ -30,6 +30,12 @@ body.app-shell {
     linear-gradient(180deg, #ffffff 0%, var(--surface-tint) 100%);
   background-attachment: fixed;
   min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+body.app-shell > main {
+  flex: 1 0 auto;
 }
 
 .font-display {
@@ -109,6 +115,19 @@ body.app-shell {
     width: 0.65rem;
     height: 0.65rem;
   }
+}
+
+.brand-lockup--footer .brand-lockup__word {
+  font-size: clamp(1.15rem, 3.5vw, 1.4rem);
+  padding: 0.18rem 0.62rem 0.22rem;
+}
+
+.site-footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(17, 17, 17, 0.06);
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(200, 232, 74, 0.12) 100%);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .catalog-intro {
@@ -204,6 +223,11 @@ body.app-shell {
 .badge-pill {
   background: color-mix(in srgb, var(--brand-lime) 88%, white);
   color: var(--brand-ink);
+}
+
+.badge-unavailable {
+  background: rgba(17, 17, 17, 0.82);
+  color: #fff;
 }
 
 .img-fallback {

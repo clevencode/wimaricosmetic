@@ -14,6 +14,7 @@
       "category": { "slug": "skincare", "label": "Skincare" },
       "price": 189.0,
       "badge": "Novo",
+      "available": true,
       "shortDescription": "Sérum leve com niacinamida e ácido hialurônico para uniformizar o tom e hidratar sem oleosidade.",
       "specs": [
         { "label": "Volume", "value": "30 ml" },
@@ -33,6 +34,7 @@
       "category": { "slug": "skincare", "label": "Skincare" },
       "price": 248.0,
       "badge": null,
+      "available": true,
       "shortDescription": "Creme reparador com ceramidas e extrato de rosa para restaurar a barreira da pele durante o sono.",
       "specs": [
         { "label": "Volume", "value": "50 ml" },
@@ -52,6 +54,7 @@
       "category": { "slug": "maquiagem", "label": "Maquiagem" },
       "price": 79.9,
       "badge": "Novo",
+      "available": true,
       "shortDescription": "Acabamento matte confortável em tom nude-rosado. Alta cobertura com fórmula que não resseca.",
       "specs": [
         { "label": "Volume", "value": "3,5 g" },
@@ -71,6 +74,7 @@
       "category": { "slug": "corpo", "label": "Corpo" },
       "price": 156.0,
       "badge": null,
+      "available": true,
       "shortDescription": "Óleo seco com jojoba e bergamota. Absorve rápido, deixa brilho sutil e perfume limpo de spa.",
       "specs": [
         { "label": "Volume", "value": "100 ml" },
@@ -90,6 +94,7 @@
       "category": { "slug": "cabelos", "label": "Cabelos" },
       "price": 134.0,
       "badge": "Sob encomenda",
+      "available": true,
       "shortDescription": "Tratamento intensivo com queratina vegetal e óleo de argan. Ideal para fios ressecados ou com química.",
       "specs": [
         { "label": "Volume", "value": "200 ml" },
@@ -109,6 +114,7 @@
       "category": { "slug": "kits", "label": "Kits" },
       "price": null,
       "badge": "Sob encomenda",
+      "available": true,
       "shortDescription": "Trio personalizável: limpador suave, sérum e creme. Ideal para quem está montando a primeira rotina Wimari.",
       "specs": [
         { "label": "Conteúdo", "value": "3 produtos à escolha" },
@@ -128,6 +134,7 @@
       "category": { "slug": "maquiagem", "label": "Maquiagem" },
       "price": 98.0,
       "badge": null,
+      "available": true,
       "shortDescription": "Blush em creme com pigmento buildable e acabamento natural. Dissolve-se na pele com os dedos ou pincel.",
       "specs": [
         { "label": "Volume", "value": "6 g" },
@@ -147,6 +154,7 @@
       "category": { "slug": "corpo", "label": "Corpo" },
       "price": 112.0,
       "badge": "Novo",
+      "available": true,
       "shortDescription": "Esfoliante com cristais de açúcar e óleos minerais suaves. Remove células mortas sem agressão.",
       "specs": [
         { "label": "Volume", "value": "250 g" },

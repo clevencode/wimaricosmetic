@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="description" content="Painel de edição do catálogo Wimari." />
+    <title>Admin — Catálogo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Outfit', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                ink: '#111111',
+                muted: '#6b6b6b',
+                accent: '#111111',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="css/admin.css" />
+
+    <script defer src="../js/config.js"></script>
+    <script defer src="../js/catalog-store.js"></script>
+    <script defer src="js/admin.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+  </head>
+  <body class="admin-shell font-sans antialiased" x-data="adminApp" x-cloak>
+    <div class="admin-banner">Área de edição — autenticação em breve</div>
+
+    <header class="admin-header sticky top-0 z-30">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-3 py-3 sm:px-4">
+        <h1 class="text-sm font-semibold tracking-tight text-brand-ink">Admin · Catálogo</h1>
+
+        <div class="ml-auto flex flex-wrap items-center gap-2">
+          <span
+            class="source-pill"
+            :class="source === 'local' ? 'source-pill--local' : ''"
+            x-text="source === 'local' ? 'Dados locais' : 'Arquivo seed'"
+          ></span>
+          <a href="../?preview=1" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">Preview</a>
+          <a href="../" class="btn btn-ghost">Vitrine</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-3 py-5 sm:px-4 sm:py-7">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight text-brand-ink sm:text-2xl">Produtos</h2>
+          <p class="mt-1 text-sm text-brand-muted">
+            Imagens, disponibilidade e detalhes. Exporte o JSON para publicar.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" @click="exportJson()" class="btn btn-ghost">Exportar JSON</button>
+          <button type="button" @click="openCreate()" class="btn btn-primary">Novo produto</button>
+        </div>
+      </div>
+
+      <p class="mt-3 text-xs leading-relaxed text-brand-muted">
+        Baixe o JSON e substitua <code class="rounded bg-black/5 px-1 py-0.5">data/products.json</code> para publicar.
+        <button
+          type="button"
+          x-show="source === 'local'"
+          @click="resetToSeed()"
+          class="ml-1 font-semibold text-brand-ink underline-offset-2 hover:underline"
+        >
+          Descartar alterações locais
+        </button>
+      </p>
+
+      <div class="mt-5 grid gap-2 sm:grid-cols-3">
+        <div class="sm:col-span-1">
+          <label class="admin-label" for="admin-search">Buscar</label>
+          <input
+            id="admin-search"
+            type="search"
+            x-model.debounce.150ms="searchQuery"
+            placeholder="Nome ou ref…"
+            class="admin-field"
+            autocomplete="off"
+          />
+        </div>
+        <div>
+          <label class="admin-label" for="admin-cat">Categoria</label>
+          <select id="admin-cat" x-model="filterCategory" class="admin-field">
+            <option value="all">Todas</option>
+            <template x-for="cat in categories" :key="cat.slug">
+              <option :value="cat.slug" x-text="cat.label"></option>
+            </template>
+          </select>
+        </div>
+        <div>
+          <label class="admin-label" for="admin-avail">Disponibilidade</label>
+          <select id="admin-avail" x-model="filterAvailability" class="admin-field">
+            <option value="all">Todas</option>
+            <option value="available">Disponíveis</option>
+            <option value="unavailable">Indisponíveis</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between">
+        <p class="text-xs font-medium text-brand-muted" x-text="resultsLabel"></p>
+      </div>
+
+      <div x-show="loading" class="py-16 text-center text-sm text-brand-muted">Carregando…</div>
+      <div
+        x-show="!loading && error"
+        class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-800"
+        x-text="error"
+      ></div>
+
+      <div x-show="!loading && !error" class="mt-3">
+        <template x-if="filteredProducts.length === 0">
+          <div class="py-14 text-center">
+            <p class="font-semibold text-brand-ink">Nenhum produto</p>
+            <p class="mt-1 text-sm text-brand-muted">Ajuste os filtros ou crie um novo produto.</p>
+          </div>
+        </template>
+
+        <div
+          x-show="filteredProducts.length > 0"
+          class="admin-gallery grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 md:gap-4"
+        >
+          <template x-for="product in filteredProducts" :key="product.id">
+            <article class="admin-gallery__item">
+              <button
+                type="button"
+                class="group w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/30 focus-visible:ring-offset-2"
+                @click="openEdit(product)"
+                :aria-label="'Editar ' + (product.name || 'produto')"
+              >
+                <div class="admin-gallery__thumb relative aspect-[4/5] overflow-hidden rounded-xl">
+                  <template x-if="product.images?.[0]">
+                    <img
+                      :src="product.images[0]"
+                      :alt="product.name || 'Produto'"
+                      class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                      loading="lazy"
+                      @error="onImageError($event)"
+                    />
+                  </template>
+                  <template x-if="!product.images?.[0]">
+                    <div class="flex h-full w-full items-center justify-center text-xs font-semibold text-brand-muted">
+                      sem imagem
+                    </div>
+                  </template>
+                  <span
+                    x-show="product.available === false"
+                    class="absolute left-2 top-2 rounded-md bg-brand-ink/85 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                  >
+                    Indisponível
+                  </span>
+                  <span
+                    x-show="product.available !== false && product.badge"
+                    class="absolute left-2 top-2 rounded-md bg-white/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-ink"
+                    x-text="product.badge"
+                  ></span>
+                </div>
+                <div class="mt-2 space-y-0.5 px-0.5">
+                  <p class="text-[10px] font-semibold uppercase tracking-wider text-brand-muted" x-text="product.category?.label || '—'"></p>
+                  <h3 class="line-clamp-2 text-sm font-semibold leading-snug text-brand-ink" x-text="product.name || 'Sem nome'"></h3>
+                  <p class="text-xs text-brand-muted" x-text="product.ref || '—'"></p>
+                  <p class="text-sm font-semibold text-brand-ink" x-text="formatPrice(product.price)"></p>
+                </div>
+              </button>
+
+              <div class="mt-2 flex items-center justify-between gap-2 px-0.5">
+                <button
+                  type="button"
+                  class="toggle"
+                  role="switch"
+                  :aria-checked="product.available !== false"
+                  :aria-label="(product.available !== false ? 'Marcar indisponível: ' : 'Marcar disponível: ') + (product.name || 'produto')"
+                  @click="toggleAvailable(product)"
+                >
+                  <span class="toggle__knob" aria-hidden="true"></span>
+                </button>
+                <button type="button" @click="openEdit(product)" class="btn btn-ghost !px-2.5 !py-1.5 !text-xs">
+                  Editar
+                </button>
+              </div>
+            </article>
+          </template>
+        </div>
+      </div>
+    </main>
+
+    <!-- Editor -->
+    <div x-show="editorOpen" x-cloak>
+      <div class="editor-backdrop hidden md:block" @click="closeEditor()"></div>
+      <div
+        class="editor-panel"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="editingId ? 'Editar produto' : 'Novo produto'"
+        @keydown.escape.window="editorOpen && closeEditor()"
+      >
+        <template x-if="draft">
+          <div class="flex min-h-0 flex-1 flex-col">
+            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-black/5 px-4 py-3">
+              <div>
+                <h2 class="text-base font-bold text-brand-ink" x-text="editingId ? 'Editar produto' : 'Novo produto'"></h2>
+                <p class="text-xs text-brand-muted">Imagens, disponibilidade e detalhes</p>
+              </div>
+              <button
+                type="button"
+                @click="closeEditor()"
+                class="flex h-9 w-9 items-center justify-center rounded-lg border border-black/10 bg-white text-brand-ink hover:bg-black/5"
+                aria-label="Fechar"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5">
+              <section>
+                <div class="flex items-center justify-between gap-3">
+                  <p class="admin-label mb-0">Disponibilidade</p>
+                  <button
+                    type="button"
+                    class="toggle"
+                    role="switch"
+                    :aria-checked="draft.available !== false"
+                    @click="draft.available = draft.available === false"
+                    aria-label="Alternar disponibilidade"
+                  >
+                    <span class="toggle__knob" aria-hidden="true"></span>
+                  </button>
+                </div>
+                <p class="mt-1 text-xs text-brand-muted" x-text="draft.available !== false ? 'Disponível na vitrine' : 'Indisponível na vitrine (ainda aparece)'"></p>
+              </section>
+
+              <section class="grid gap-3 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                  <label class="admin-label" for="f-name">Nome</label>
+                  <input id="f-name" type="text" x-model="draft.name" class="admin-field" />
+                </div>
+                <div>
+                  <label class="admin-label" for="f-ref">Referência</label>
+                  <input id="f-ref" type="text" x-model="draft.ref" class="admin-field" />
+                </div>
+                <div>
+                  <label class="admin-label" for="f-cat">Categoria</label>
+                  <select id="f-cat" x-model="draft.category.slug" @change="onCategoryChange()" class="admin-field">
+                    <template x-for="cat in categories" :key="cat.slug">
+                      <option :value="cat.slug" x-text="cat.label"></option>
+                    </template>
+                  </select>
+                </div>
+                <div>
+                  <label class="admin-label" for="f-badge">Badge (opcional)</label>
+                  <input id="f-badge" type="text" x-model="draft.badge" placeholder="Novo, Sob encomenda…" class="admin-field" />
+                </div>
+                <div>
+                  <label class="admin-label" for="f-price">Preço</label>
+                  <div class="flex items-center gap-2">
+                    <label class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-muted">
+                      <input type="checkbox" x-model="priceOnRequest" @change="onPriceModeChange()" class="rounded border-black/20" />
+                      Sob consulta
+                    </label>
+                  </div>
+                  <input
+                    id="f-price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    x-model.number="draft.price"
+                    :disabled="priceOnRequest"
+                    class="admin-field mt-2"
+                  />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="admin-label" for="f-desc">Descrição curta</label>
+                  <textarea id="f-desc" rows="3" x-model="draft.shortDescription" class="admin-field resize-y"></textarea>
+                </div>
+              </section>
+
+              <section>
+                <div class="mb-2 flex items-center justify-between">
+                  <p class="admin-label mb-0">Specs</p>
+                  <button type="button" @click="addSpec()" class="text-xs font-semibold text-brand-ink underline-offset-2 hover:underline">
+                    + linha
+                  </button>
+                </div>
+                <div class="space-y-2">
+                  <template x-for="(spec, index) in draft.specs" :key="index">
+                    <div class="grid grid-cols-[1fr_1fr_auto] gap-2">
+                      <input type="text" x-model="spec.label" placeholder="Label" class="admin-field" />
+                      <input type="text" x-model="spec.value" placeholder="Valor" class="admin-field" />
+                      <button
+                        type="button"
+                        @click="removeSpec(index)"
+                        class="rounded-xl border border-black/10 px-2 text-xs font-semibold text-brand-muted hover:bg-black/5"
+                        aria-label="Remover spec"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </section>
+
+              <section>
+                <p class="admin-label">Imagens (URLs)</p>
+                <div class="space-y-2">
+                  <template x-for="(img, index) in draft.images" :key="index">
+                    <div class="flex items-start gap-2 rounded-xl border border-black/8 bg-white p-2">
+                      <img
+                        x-show="img"
+                        :src="img"
+                        alt=""
+                        class="h-14 w-14 shrink-0 rounded-lg object-cover bg-[#ececee]"
+                        @error="onImageError($event)"
+                      />
+                      <div class="min-w-0 flex-1">
+                        <input type="url" x-model="draft.images[index]" class="admin-field" placeholder="https://…" />
+                        <div class="mt-1.5 flex gap-2">
+                          <button type="button" @click="moveImage(index, -1)" class="text-xs font-semibold text-brand-muted hover:text-brand-ink">↑</button>
+                          <button type="button" @click="moveImage(index, 1)" class="text-xs font-semibold text-brand-muted hover:text-brand-ink">↓</button>
+                          <button type="button" @click="removeImage(index)" class="text-xs font-semibold text-brand-muted hover:text-brand-ink">Remover</button>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+                <div class="mt-2 flex gap-2">
+                  <input
+                    type="url"
+                    x-model="newImageUrl"
+                    @keydown.enter.prevent="addImage()"
+                    placeholder="Cole a URL da imagem"
+                    class="admin-field"
+                  />
+                  <button
+                    type="button"
+                    @click="addImage()"
+                    class="btn btn-ghost shrink-0"
+                  >
+                    Add
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <div class="shrink-0 border-t border-black/5 bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <div class="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  x-show="editingId"
+                  @click="deleteDraft()"
+                  class="btn btn-danger"
+                >
+                  Remover
+                </button>
+                <div class="ml-auto flex gap-2">
+                  <button type="button" @click="closeEditor()" class="btn btn-ghost">Cancelar</button>
+                  <button type="button" @click="saveDraft()" class="btn btn-primary">Salvar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div
+      x-show="feedback"
+      x-transition
+      class="toast fixed bottom-4 left-1/2 z-[60] max-w-[90vw] -translate-x-1/2 rounded-lg bg-brand-ink px-4 py-2 text-center text-xs font-semibold text-white shadow-lg"
+      x-text="feedback"
+    ></div>
+  </body>
+</html>

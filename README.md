@@ -69,6 +69,7 @@ HTML5 + Tailwind CSS (CDN) + Alpine.js + Firebase (Auth, Firestore, Storage) + s
 Padronizados em [`css/icons.css`](css/icons.css):
 
 - Classe base `.icon` — outline 24×24, `stroke-width: 2`, caps arredondados
+- Admin: glifos [coolicons](https://coolicons.cool) **line/round** (inline SVG)
 - Tamanhos: `.icon--sm` · `.icon--md` · `.icon--lg` · `.icon--xl`
 - Exceção de marca: `.icon--brand` (WhatsApp filled)
 

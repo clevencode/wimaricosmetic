@@ -585,6 +585,23 @@ body.admin-shell {
   gap: 0.25rem;
   font-size: 0.72rem;
   font-weight: 650;
+  text-align: center;
+  padding: 0.35rem;
+}
+
+.photo-add__spinner {
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 2px solid rgba(26, 26, 26, 0.12);
+  border-top-color: var(--accent-hover);
+  border-radius: 999px;
+  animation: photo-spin 0.7s linear infinite;
+}
+
+@keyframes photo-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .cat-pills {
@@ -1114,6 +1131,54 @@ body.admin-shell {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+}
+
+.login-card__password {
+  position: relative;
+}
+
+.login-card__password .admin-field {
+  padding-right: 2.75rem;
+}
+
+.login-card__eye {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: var(--muted);
+}
+
+.login-card__eye:hover,
+.login-card__eye:focus-visible {
+  color: var(--ink);
+  background: var(--sand);
+  outline: none;
+}
+
+.login-card__remember {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.login-card__remember input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
 }
 
 .login-card__error {

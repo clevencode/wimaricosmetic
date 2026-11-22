@@ -156,14 +156,26 @@ window.WimariFirebase = (() => {
     return new Blob([arr], { type: mime });
   }
 
-  async function uploadProductImage(dataUrlOrBlob, { productId, index } = {}) {
+  async function uploadProductImage(
+    dataUrlOrBlob,
+    { productId, index, fileName, contentType } = {},
+  ) {
     requireUser();
     const blob =
       dataUrlOrBlob instanceof Blob ? dataUrlOrBlob : dataUrlToBlob(dataUrlOrBlob);
-    const safeId = String(productId || 'produto').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48) || 'produto';
-    const name = `${STORAGE_PREFIX}/${safeId}/${Date.now()}-${index || 0}.jpg`;
-    const ref = getStorage().ref().child(name);
-    await ref.put(blob, { contentType: blob.type || 'image/jpeg' });
+    const safeId =
+      String(productId || 'produto')
+        .replace(/[^a-zA-Z0-9_-]/g, '')
+        .slice(0, 48) || 'produto';
+    const mime = contentType || blob.type || 'image/webp';
+    const ext = mime.includes('jpeg') || mime.includes('jpg') ? 'jpg' : 'webp';
+    const objectName =
+      fileName && String(fileName).trim()
+        ? String(fileName).replace(/[/\\]/g, '')
+        : `${Date.now()}-${index || 0}.${ext}`;
+    const path = `${STORAGE_PREFIX}/${safeId}/${objectName}`;
+    const ref = getStorage().ref().child(path);
+    await ref.put(blob, { contentType: mime });
     return ref.getDownloadURL();
   }
 

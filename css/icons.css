@@ -1,6 +1,7 @@
 /**
  * Ícones padronizados — Wimari (vitrine + admin)
- * Padrão: outline 24×24, stroke 2, round caps.
+ * Admin: glifos [coolicons](https://coolicons.cool) line/round (24×24, stroke 2).
+ * Vitrine: outline 24×24, stroke 2, round caps.
  * Exceção: .icon--brand (WhatsApp e logos filled).
  */
 .icon {

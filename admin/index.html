@@ -43,6 +43,7 @@
     <script defer src="../js/firebase.js"></script>
     <script defer src="../js/catalog-store.js"></script>
     <script defer src="js/auth.js"></script>
+    <script defer src="js/optimize-image.js"></script>
     <script defer src="js/admin.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
   </head>
@@ -54,9 +55,45 @@
         <p class="login-card__hint">Acesso da loja — Firebase Auth (Web app Wimari).</p>
         <form class="login-card__form" @submit.prevent="login()">
           <label class="admin-label" for="auth-email">E-mail</label>
-          <input id="auth-email" type="email" class="admin-field" autocomplete="username" x-model="authEmail" required />
+          <input
+            id="auth-email"
+            type="email"
+            class="admin-field"
+            autocomplete="username"
+            placeholder="ex.: loja@wimari.com"
+            x-model="authEmail"
+            required
+          />
           <label class="admin-label" for="auth-password">Senha</label>
-          <input id="auth-password" type="password" class="admin-field" autocomplete="current-password" x-model="authPassword" required />
+          <div class="login-card__password">
+            <input
+              id="auth-password"
+              class="admin-field"
+              :type="authShowPassword ? 'text' : 'password'"
+              autocomplete="current-password"
+              placeholder="Digite sua senha"
+              x-model="authPassword"
+              required
+            />
+            <button
+              type="button"
+              class="login-card__eye"
+              @click="authShowPassword = !authShowPassword"
+              :aria-label="authShowPassword ? 'Ocultar senha' : 'Mostrar senha'"
+              :aria-pressed="authShowPassword"
+            >
+              <svg x-show="!authShowPassword" class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 12C4.51388 8.36669 8.06392 6 12 6C15.93608 6 19.48612 8.36669 21 12C19.48612 15.63331 15.93608 18 12 18C8.06392 18 4.51388 15.63331 3 12ZM10 12C10 13.10457 10.89543 14 12 14C13.10457 14 14 13.10457 14 12C14 10.89543 13.10457 10 12 10C10.89543 10 10 10.89543 10 12Z" />
+              </svg>
+              <svg x-show="authShowPassword" x-cloak class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M16.75947 16.75947C15.33443 17.55677 13.70336 18 12 18C8.06392 18 4.51388 15.63331 3 12C3.85874 9.93903 5.37264 8.28561 7.24053 7.24053M12 6C15.93608 6 19.48612 8.36669 21 12C20.71221 12.6907 20.35083 13.33562 19.92721 13.92721M10.58579 10.58579C10.22386 10.94771 10 11.44771 10 12C10 13.10457 10.89543 14 12 14C12.55229 14 13.05229 13.77614 13.41421 13.41421M2 2L22 22" />
+              </svg>
+            </button>
+          </div>
+          <label class="login-card__remember">
+            <input type="checkbox" x-model="authRememberEmail" />
+            <span>Lembrar e-mail neste aparelho</span>
+          </label>
           <p x-show="authError" class="login-card__error" x-text="authError" x-cloak></p>
           <button type="submit" class="btn btn-primary w-full" :disabled="authBusy" x-text="authBusy ? 'Entrando…' : 'Entrar'"></button>
         </form>
@@ -107,10 +144,7 @@
             <button type="button" class="home-action" @click="goProducts()">
               <span class="home-action__icon" aria-hidden="true">
                 <svg class="icon icon--lg" viewBox="0 0 24 24">
-                  <path d="M6 7h15l-1.5 9H8L6 7z" />
-                  <path d="M6 7L5 3H2" />
-                  <circle cx="9" cy="20" r="1" />
-                  <circle cx="18" cy="20" r="1" />
+                  <path d="M3 4C3.84559 4 4.66176 4.81618 5 6L7 13C7.50735 14.77574 9.1397 16 11 16H17C17.79625 16 18.60187 15.19438 19 14L20 11C20.49196 9.52412 19.47588 8 18 8H6M8 20C8 20.55228 8.44772 21 9 21C9.55228 21 10 20.55228 10 20C10 19.44772 9.55228 19 9 19C8.44772 19 8 19.44772 8 20ZM17 20C17 20.55228 17.44772 21 18 21C18.55228 21 19 20.55228 19 20C19 19.44772 18.55228 19 18 19C17.44772 19 17 19.44772 17 20Z" />
                 </svg>
               </span>
               <span class="home-action__copy">
@@ -121,7 +155,7 @@
             <button type="button" class="home-action home-action--primary" @click="openCreate()">
               <span class="home-action__icon" aria-hidden="true">
                 <svg class="icon icon--lg" viewBox="0 0 24 24">
-                  <path d="M12 5v14M5 12h14" />
+                  <path d="M6 12H18M12 6V18" />
                 </svg>
               </span>
               <span class="home-action__copy">
@@ -144,8 +178,7 @@
 
         <div class="search-bar mb-4" @keydown.escape.window="filterMenuOpen && closeFilterMenu()">
           <svg class="icon icon--md search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.35-4.35" />
+            <path d="M3 10C3 13.86599 6.13401 17 10 17C13.86599 17 17 13.86599 17 10C17 6.13401 13.86599 3 10 3C6.13401 3 3 6.13401 3 10ZM15 15L21 21" />
           </svg>
           <label class="sr-only" for="viewer-search">Buscar produto</label>
           <input
@@ -273,8 +306,7 @@
                   :aria-label="'Editar ' + (product.name || 'produto')"
                 >
                   <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    <path d="M4 16L14 6C15.10457 4.89543 16.89543 4.89543 18 6C19.10457 7.10457 19.10457 8.89543 18 10L8 20M12 8L16 12M8 20H4V16" />
                   </svg>
                 </button>
               </article>
@@ -297,7 +329,7 @@
         <div class="create-top">
           <div class="create-top__row">
             <button type="button" class="create-top__back" @click="createBack()" aria-label="Voltar">
-              <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19l-7-7 7-7" /></svg>
+              <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8L10 12L14 16" /></svg>
             </button>
             <button
               type="button"
@@ -332,20 +364,21 @@
                     <span x-show="index === 0" class="photo-thumb__badge">Capa</span>
                     <div class="photo-thumb__actions">
                       <button type="button" @click="moveCreateImage(index, -1)" aria-label="Mover para cima">
-                        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15l7-7 7 7" /></svg>
+                        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 14L12 10L8 14" /></svg>
                       </button>
                       <button type="button" @click="removeCreateImage(index)" aria-label="Remover">
-                        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6L18 18M18 6L6 18" /></svg>
                       </button>
                       <button type="button" @click="moveCreateImage(index, 1)" aria-label="Mover para baixo">
-                        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
+                        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10L12 14L16 10" /></svg>
                       </button>
                     </div>
                   </div>
                 </template>
                 <label x-show="createPhotoCount < 5" class="photo-add" :class="uploadingPhotos && 'opacity-60'">
-                  <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-                  <span x-text="uploadingPhotos ? 'Enviando…' : 'Adicionar'"></span>
+                  <svg x-show="!uploadingPhotos" class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12H18M12 6V18" /></svg>
+                  <span x-show="uploadingPhotos" class="photo-add__spinner" aria-hidden="true"></span>
+                  <span x-text="uploadingPhotos ? (photoProcessLabel || 'Otimizando…') : 'Adicionar'"></span>
                   <input
                     type="file"
                     class="sr-only"
@@ -437,11 +470,11 @@
               <label class="admin-label">Quantidade em Estoque</label>
               <div class="stock-stepper">
                 <button type="button" @click="bumpStock(-1)" aria-label="Diminuir">
-                  <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
+                  <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12H18" /></svg>
                 </button>
                 <input type="number" min="0" step="1" class="admin-field" x-model.number="createForm.stock" />
                 <button type="button" @click="bumpStock(1)" aria-label="Aumentar">
-                  <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+                  <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12H18M12 6V18" /></svg>
                 </button>
               </div>
               <div class="mt-3">
@@ -469,8 +502,7 @@
       <button type="button" class="bottom-nav__item" :class="{ 'bottom-nav__item--active': navTab === 'home' }" @click="setNav('home')">
         <span class="bottom-nav__icon-wrap" aria-hidden="true">
           <svg class="icon icon--lg" viewBox="0 0 24 24">
-            <path d="M3 10.5L12 3l9 7.5" />
-            <path d="M5 9.5V20h5v-6h4v6h5V9.5" />
+            <path d="M16 7L19 10C19.64029 10.64029 20 11.71942 20 13V17C20 19.20914 18.20914 21 16 21H8C5.79086 21 4 19.20914 4 17V13C4 11.71942 4.35971 10.64029 5 10L9 6C10.65685 4.34315 13.34315 4.34315 15 6L16 7Z" />
           </svg>
         </span>
         Home
@@ -478,10 +510,7 @@
       <button type="button" class="bottom-nav__item" :class="{ 'bottom-nav__item--active': navTab === 'products' }" @click="setNav('products')">
         <span class="bottom-nav__icon-wrap" aria-hidden="true">
           <svg class="icon icon--lg" viewBox="0 0 24 24">
-            <path d="M6 7h15l-1.5 9H8L6 7z" />
-            <path d="M6 7L5 3H2" />
-            <circle cx="9" cy="20" r="1" />
-            <circle cx="18" cy="20" r="1" />
+            <path d="M3 4C3.84559 4 4.66176 4.81618 5 6L7 13C7.50735 14.77574 9.1397 16 11 16H17C17.79625 16 18.60187 15.19438 19 14L20 11C20.49196 9.52412 19.47588 8 18 8H6M8 20C8 20.55228 8.44772 21 9 21C9.55228 21 10 20.55228 10 20C10 19.44772 9.55228 19 9 19C8.44772 19 8 19.44772 8 20ZM17 20C17 20.55228 17.44772 21 18 21C18.55228 21 19 20.55228 19 20C19 19.44772 18.55228 19 18 19C17.44772 19 17 19.44772 17 20Z" />
           </svg>
         </span>
         Produtos
@@ -489,15 +518,14 @@
       <div class="bottom-nav__fab-slot">
         <button type="button" class="fab-create" @click="openCreate()" aria-label="Criar novo produto">
           <svg class="icon icon--xl" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
+            <path d="M6 12H18M12 6V18" />
           </svg>
         </button>
       </div>
       <button type="button" class="bottom-nav__item" :class="{ 'bottom-nav__item--active': navTab === 'orders' }" @click="setNav('orders')">
         <span class="bottom-nav__icon-wrap" aria-hidden="true">
           <svg class="icon icon--lg" viewBox="0 0 24 24">
-            <path d="M6 8h12v11a2 2 0 01-2 2H8a2 2 0 01-2-2V8z" />
-            <path d="M9 8V6a3 3 0 016 0v2" />
+            <path d="M5 10C5 7.79086 6.79086 6 9 6H15C17.20914 6 19 7.79086 19 10V17C19 19.20914 17.20914 21 15 21H9C6.79086 21 5 19.20914 5 17ZM9 6C9 4.34315 10.34315 3 12 3C13.65685 3 15 4.34315 15 6" />
           </svg>
         </span>
         Pedidos
@@ -505,8 +533,7 @@
       <button type="button" class="bottom-nav__item" :class="{ 'bottom-nav__item--active': navTab === 'profile' }" @click="setNav('profile')">
         <span class="bottom-nav__icon-wrap" aria-hidden="true">
           <svg class="icon icon--lg" viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 20c1.2-3.5 4-5 8-5s6.8 1.5 8 5" />
+            <path d="M8 7C8 9.20914 9.79086 11 12 11C14.20914 11 16 9.20914 16 7C16 4.79086 14.20914 3 12 3C9.79086 3 8 4.79086 8 7ZM6 21C6 17.68629 8.68629 15 12 15C15.31371 15 18 17.68629 18 21" />
           </svg>
         </span>
         Perfil

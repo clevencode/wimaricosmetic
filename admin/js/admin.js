@@ -10,6 +10,8 @@ document.addEventListener('alpine:init', () => {
     authUser: null,
     authEmail: '',
     authPassword: '',
+    authShowPassword: false,
+    authRememberEmail: true,
     authError: '',
     authBusy: false,
 
@@ -35,10 +37,12 @@ document.addEventListener('alpine:init', () => {
     accordionComposition: false,
     activeOptions: window.CatalogStore?.ACTIVE_OPTIONS || [],
     uploadingPhotos: false,
+    photoProcessLabel: '',
 
     async init() {
       this.lowStockThreshold = window.VITRINE_CONFIG?.lowStockThreshold ?? 10;
       this.activeOptions = window.CatalogStore?.ACTIVE_OPTIONS || [];
+      this.hydrateRememberedEmail();
 
       if (!window.AdminAuth?.isReady?.()) {
         this.error =
@@ -66,11 +70,36 @@ document.addEventListener('alpine:init', () => {
       return Boolean(this.authUser);
     },
 
+    hydrateRememberedEmail() {
+      try {
+        const raw = localStorage.getItem('wimari_admin_email');
+        if (raw) {
+          this.authEmail = raw;
+          this.authRememberEmail = true;
+        }
+      } catch {
+        /* ignore */
+      }
+    },
+
+    persistRememberedEmail() {
+      try {
+        if (this.authRememberEmail && this.authEmail.trim()) {
+          localStorage.setItem('wimari_admin_email', this.authEmail.trim());
+        } else {
+          localStorage.removeItem('wimari_admin_email');
+        }
+      } catch {
+        /* ignore */
+      }
+    },
+
     async login() {
       this.authError = '';
       this.authBusy = true;
       try {
         await window.AdminAuth.signIn(this.authEmail, this.authPassword);
+        this.persistRememberedEmail();
         this.authPassword = '';
       } catch (err) {
         const code = err?.code || '';
@@ -477,20 +506,6 @@ document.addEventListener('alpine:init', () => {
       imgs[next] = tmp;
     },
 
-    async compressImageFile(file, maxWidth = 900, quality = 0.72) {
-      const bitmap = await createImageBitmap(file);
-      const scale = Math.min(1, maxWidth / bitmap.width);
-      const w = Math.round(bitmap.width * scale);
-      const h = Math.round(bitmap.height * scale);
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(bitmap, 0, 0, w, h);
-      bitmap.close?.();
-      return canvas.toDataURL('image/jpeg', quality);
-    },
-
     async onPhotoFilesSelected(event) {
       const files = Array.from(event.target?.files || []);
       event.target.value = '';
@@ -502,24 +517,39 @@ document.addEventListener('alpine:init', () => {
         return;
       }
 
+      const optimize = window.WimariImageOptimize?.optimizeProductImage;
+      if (!optimize) {
+        this.showFeedback('Otimizador de imagens não carregou.');
+        return;
+      }
+
       this.uploadingPhotos = true;
+      this.photoProcessLabel = 'Otimizando…';
       try {
         const slice = files.slice(0, room);
         let i = 0;
         for (const file of slice) {
-          if (!file.type.startsWith('image/')) continue;
-          const dataUrl = await this.compressImageFile(file);
-          const url = await window.CatalogStore.uploadImage(dataUrl, {
+          if (!file.type.startsWith('image/')) {
+            this.showFeedback('Selecione apenas arquivos de imagem.');
+            continue;
+          }
+          this.photoProcessLabel = 'Otimizando…';
+          const optimized = await optimize(file);
+          this.photoProcessLabel = 'Enviando…';
+          const url = await window.CatalogStore.uploadImage(optimized.blob, {
             productId: this.createForm.id || this.editingId || 'novo',
             index: this.createForm.images.length + i,
+            fileName: optimized.fileName,
+            contentType: optimized.contentType,
           });
           this.createForm.images.push(url);
           i += 1;
         }
       } catch (err) {
-        this.showFeedback(err?.message || 'Não foi possível enviar a imagem');
+        this.showFeedback(err?.message || 'Não foi possível processar a imagem');
       } finally {
         this.uploadingPhotos = false;
+        this.photoProcessLabel = '';
       }
     },
 

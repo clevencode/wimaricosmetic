@@ -193,9 +193,9 @@ window.CatalogStore = (() => {
     });
   }
 
-  async function uploadImage(dataUrl, meta) {
+  async function uploadImage(blobOrDataUrl, meta) {
     if (!firebaseReady()) throw new Error('Firebase não configurado.');
-    return window.WimariFirebase.uploadProductImage(dataUrl, meta);
+    return window.WimariFirebase.uploadProductImage(blobOrDataUrl, meta);
   }
 
   return {

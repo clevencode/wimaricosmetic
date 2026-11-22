@@ -42,7 +42,7 @@ document.addEventListener('alpine:init', () => {
 
       if (!window.AdminAuth?.isReady?.()) {
         this.error =
-          'Firebase não configurado. Crie js/firebase-config.local.js (ver firebase-config.example.js).';
+          'Firebase não configurado. Crie a Web app Wimari e preencha js/firebase-config.local.js — ver firebase/SETUP.md';
         this.authReady = true;
         this.loading = false;
         return;
@@ -73,7 +73,18 @@ document.addEventListener('alpine:init', () => {
         await window.AdminAuth.signIn(this.authEmail, this.authPassword);
         this.authPassword = '';
       } catch (err) {
-        this.authError = err?.message || 'Falha no login.';
+        const code = err?.code || '';
+        if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+          this.authError = 'E-mail ou senha incorretos.';
+        } else if (code === 'auth/invalid-email') {
+          this.authError = 'E-mail inválido.';
+        } else if (code === 'auth/too-many-requests') {
+          this.authError = 'Muitas tentativas. Aguarde e tente de novo.';
+        } else if (code === 'auth/unauthorized-domain') {
+          this.authError = 'Domínio não autorizado no Firebase Auth.';
+        } else {
+          this.authError = err?.message || 'Falha no login.';
+        }
       } finally {
         this.authBusy = false;
       }

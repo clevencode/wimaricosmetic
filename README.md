@@ -24,31 +24,20 @@ Depois abra o endereço indicado no terminal (geralmente `http://localhost:3000`
 | Vitrine | https://wimaricosmetic.vercel.app/ |
 | Painel admin | https://wimaricosmetic.vercel.app/admin/ |
 
-## Admin + Firebase (zero custo Spark)
+## Admin + Firebase (Web app Wimari)
 
-Mesmo projeto Firebase do **BiblosApp** (`audiobible-9b689` ou o teu). Auth e-mail/senha, catálogo em Firestore `catalog/main`, fotos em Storage `product-images/`.
+Auth e-mail/senha, catálogo em Firestore `catalog/main`, fotos em Storage `product-images/`.
 
-### Setup rápido
+**Setup:** [`firebase/SETUP.md`](firebase/SETUP.md)
 
-1. Console Firebase → **Authentication** → ativar Email/Password → criar utilizadora da cliente  
-2. Publicar rules em [`firebase/firestore.rules`](firebase/firestore.rules) e [`firebase/storage.rules`](firebase/storage.rules)  
-3. Auth → Settings → **Authorized domains**: `localhost`, `wimaricosmetic.vercel.app`  
-4. Config local (não versionada):
-
-```powershell
-# A partir das VITE_FIREBASE_* do BiblosApp → js/firebase-config.local.js
-# Ou copie js/firebase-config.example.js e preencha
+```bash
+# Automatiza Web app + config.local + deploy das rules
+node scripts/setup-firebase.mjs
 ```
 
-5. Abrir `/admin/` → login → no 1º acesso o seed `data/products.json` é enviado ao Firestore se o doc estiver vazio  
+Ainda no Console: ativar Email/Password, criar user da cliente, authorized domains.
 
-### Fluxo do painel
-
-1. Login → **Início** / **Produtos** / criar-editar (stepper 3 passos)  
-2. Persistência **só no Firebase** (sem localStorage de catálogo)  
-3. Vitrine lê Firestore; se Firebase falhar/indisponível, fallback de leitura ao seed JSON  
-
-Rascunhos (`draft: true`) não entram na vitrine. `available: false` aparece com selo Indisponível.
+Persistência só no Firebase. Vitrine lê Firestore (fallback de leitura: seed JSON).
 
 ## Personalizar
 
@@ -56,7 +45,7 @@ Rascunhos (`draft: true`) não entram na vitrine. `available: false` aparece com
 | --- | --- |
 | Número do WhatsApp | `js/config.js` → `whatsappNumber` (somente dígitos, com DDI) |
 | Nome da marca | `js/config.js` → `brandName` / `brandTagline` |
-| Firebase | `js/firebase-config.local.js` (ver example) |
+| Firebase | `js/firebase-config.js` + `.local.js` — ver [`firebase/SETUP.md`](firebase/SETUP.md) |
 | Seed inicial | `data/products.json` (só bootstrap) |
 
 ## Funcionalidades

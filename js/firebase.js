@@ -1,7 +1,8 @@
 /**
- * Init Firebase (Auth + Firestore + Storage) — adaptado do BiblosApp `src/lib/firebase.ts`.
- * Config: window.WIMARI_FIREBASE_CONFIG (firebase-config.local.js) ou VITRINE_CONFIG.firebase.
- * Requer SDKs compat no HTML (app, auth, firestore, storage).
+ * Init Firebase Wimari (Auth + Firestore + Storage).
+ * Config canónica: js/firebase-config.js
+ * Override local: js/firebase-config.local.js
+ * Setup: firebase/SETUP.md
  */
 window.WimariFirebase = (() => {
   const CATALOG_DOC_PATH = { collection: 'catalog', id: 'main' };
@@ -19,9 +20,10 @@ window.WimariFirebase = (() => {
   }
 
   function readOptions() {
-    const fromLocal = window.WIMARI_FIREBASE_CONFIG || {};
+    const fromFile = window.WIMARI_FIREBASE_CONFIG || {};
     const fromConfig = window.VITRINE_CONFIG?.firebase || {};
-    const merged = { ...fromConfig, ...fromLocal };
+    // local (último script) / ficheiro canónico prevalece sobre VITRINE_CONFIG vazio
+    const merged = { ...fromConfig, ...fromFile };
     const apiKey = cleanEnv(merged.apiKey);
     const authDomain = cleanEnv(merged.authDomain);
     const projectId = cleanEnv(merged.projectId);
@@ -43,7 +45,9 @@ window.WimariFirebase = (() => {
       throw new Error('Firebase SDK não carregou.');
     }
     const options = readOptions();
-    if (!options) throw new Error('Firebase não configurado (firebase-config.local.js).');
+    if (!options) {
+      throw new Error('Firebase não configurado — veja firebase/SETUP.md');
+    }
     if (!firebase.apps.length) {
       app = firebase.initializeApp(options);
     } else {

@@ -1,15 +1,18 @@
 /**
- * Copie para js/firebase-config.local.js e preencha com o mesmo projeto Firebase do BiblosApp.
- * (Console → Project settings → Your apps → Web)
+ * Exemplo — copie para js/firebase-config.js (commit) ou
+ * js/firebase-config.local.js (só local / Vercel secret).
  *
- * PowerShell (a partir das vars VITE_FIREBASE_* do BiblosApp):
- *   ver README → “Firebase”
+ * Fluxo:
+ * 1. Firebase Console → Add app → Web (nickname: wimari)
+ * 2. Copiar o objeto firebaseConfig
+ * 3. Colar abaixo
+ * 4. Auth Email/Password + domains + rules (ver firebase/SETUP.md)
  */
 window.WIMARI_FIREBASE_CONFIG = {
-  apiKey: '',
-  authDomain: '',
-  projectId: '',
-  storageBucket: '',
-  appId: '',
-  messagingSenderId: '',
+  apiKey: 'AIza…',
+  authDomain: 'SEU_PROJETO.firebaseapp.com',
+  projectId: 'SEU_PROJETO',
+  storageBucket: 'SEU_PROJETO.appspot.com',
+  messagingSenderId: '000000000000',
+  appId: '1:000000000000:web:abcdef',
 };

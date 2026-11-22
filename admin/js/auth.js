@@ -1,5 +1,5 @@
 /**
- * Auth admin — Firebase email/senha (padrão editorial BiblosApp).
+ * Auth admin Wimari — Firebase email/senha (Web app dedicada).
  */
 window.AdminAuth = (() => {
   function fb() {
